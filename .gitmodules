@@ -1,0 +1,9 @@
+[submodule "external/tmxlite"]
+	path = external/tmxlite
+	url = https://github.com/fallahn/tmxlite
+[submodule "external/SFML"]
+	path = external/SFML
+	url = https://github.com/SFML/SFML.git
+[submodule "external/fpm"]
+	path = external/fpm
+	url = https://github.com/MikeLankamp/fpm.git
