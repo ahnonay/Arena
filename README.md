@@ -2,21 +2,27 @@
 
 Arena is a cooperative multi-player game where you fight monsters, level up your hero, and protect your base.
 
+![Teaser image of the game](Data/teaser1.jpg)
+![Teaser image of the game](Data/teaser2.jpg)
+
 ## Playing Arena
 
 - The host must ensure that their firewall allows connections on TCP port 53000
 - Every player must choose a name and a character type (Knight, Archer, ...) on the main screen
 - The host can start the game once all players have joined
-- Use WASD to move your character and arrow keys to move the camera
+- Use WASD to move your character and arrow keys or mouse to move the camera
 - Use the mouse to attack and cast spells
-- You can also use shortcuts 0--9 to cast spells or use potions
-- Killing creeps gives XP and gold
-- You can buy potions and tomes using gold in the shop (area of the map with railroad tracks)
-- The pool of water regenerates HP
-- On a level up, your stats increase and you can upgrade one of your spells
 - If a creep reaches your base, you lose a life
 - If you lose all lives, you lose the game
 - Kill the guards in all creep spawn points to win
+
+Furthermore: 
+
+- Killing creeps gives XP and gold
+- On a level up, your stats increase and you can upgrade one of your spells
+- You can buy potions and tomes using gold in the shop (area of the map with railroad tracks)
+- The pool of water regenerates HP
+- You can also use shortcuts 0--9 to cast spells or use potions
 
 ## Building Arena
 
@@ -76,11 +82,9 @@ The binary created through this docker container should be portable to most mode
 - In the `Game` class, `viewWorld` is used when rendering objects in the game world, whereas `viewUI` is used for rendering the UI. To convert between map and world coordinates, use `tilemap->mapToWorld(...)` and `tilemap->worldToMap(...)`. To convert between world and UI coordinates, use `window->mapPixelToCoords(...)`.
 - Although the game is 2D, we draw characters and map tiles with a z-coordinate which is then used for depth testing/z-ordering. SFML does not support this natively, so we need to write some extra classes like `Render/Sprite3.h` and rendering code (see `Game::render(...)`).
 
-### Adding a new skill
-
 ## Credits
 
-- Developed by [Michael Krause](http://mijael.de).
+- Developed by [Michael Krause](http://mijael.de)
 - Built using [SFML by Laurent Gomila & contributors](https://www.sfml-dev.org/), [fpm by Mike Lankamp & contributors](https://github.com/MikeLankamp/fpm), [tmxlite by Matt Marchant & contributors](https://github.com/fallahn/tmxlite)
 - Character tilesets by [Reiner "Tiles" Prokein](https://www.reinerstilesets.de/)
 - Dungeon tileset by [Clint Bellanger](https://opengameart.org/content/cave-tileset)
