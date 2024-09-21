@@ -58,7 +58,7 @@ void Character::unloadStaticResources() {
     std::fill(conditionIcons.begin(), conditionIcons.end(), nullptr);
 }
 
-Character::Character(sf::Uint32 ID, CHARACTERS characterNum, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap>& tilemap, const std::shared_ptr<CharacterContainer>& characterContainer, unsigned int randomSeed) :
+Character::Character(std::uint32_t ID, CHARACTERS characterNum, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap>& tilemap, const std::shared_ptr<CharacterContainer>& characterContainer, unsigned int randomSeed) :
         ID(ID), type(characterNum), mapPosition(spawnPosition), curOrientation(ORIENTATIONS::W), animationStep(0.f),
         curAnimationState(ANIMATION_STATE::STOP), tilemap(tilemap), maxMovementPerSecond(0),
         groundRadius(DEFAULT_CHARACTER_RADIUS), maxHP(30), HP(30), attackRange(DEFAULT_CHARACTER_ATTACK_RANGE),
@@ -107,7 +107,7 @@ bool Character::updateDrawables(const sf::FloatRect& frustum, float elapsedSecon
         sprite.setDepth(1.f - ((((unsigned int) mapPositionToRender.y) * tilemap->getWidth() + (float) mapPositionToRender.x) / (tilemap->getHeight() * tilemap->getWidth())));
 
         healthRect.setSize(sf::Vector2f((float)(HP/maxHP) * 40.f, 5.f));
-        healthRect.setPosition(worldPositionToRender.x - 20.f, worldPositionToRender.y - 75.f);
+        healthRect.setPosition({worldPositionToRender.x - 20.f, worldPositionToRender.y - 75.f});
     }
     hoverColor = sf::Color::White;
     return visible;
@@ -132,13 +132,12 @@ void Character::drawUI(sf::RenderTarget &target) {
         float iconSizeX = 20;
         unsigned int iconsRendered = 0;
         float totalLength = numActiveConditions * iconSizeX + (numActiveConditions - 1) * (iconSizeX / 4.f);
-        sf::Sprite conditionSprite;
         for (unsigned int c = 0; c < static_cast<int>(CONDITIONS::CONDITIONS_COUNT); c++) {
             if (hasCondition(static_cast<CONDITIONS>(c))) {
-                conditionSprite.setTexture(*conditionIcons[c]);
-                conditionSprite.setPosition(spritePosition.x - (totalLength / 2.f) + iconsRendered * (iconSizeX * 5.f / 4.f), spritePosition.y - 100.f);
+                sf::Sprite conditionSprite(*conditionIcons[c]);
+                conditionSprite.setPosition({spritePosition.x - (totalLength / 2.f) + iconsRendered * (iconSizeX * 5.f / 4.f), spritePosition.y - 100.f});
                 float scale = iconSizeX / conditionIcons[c]->getSize().x;
-                conditionSprite.setScale(scale, scale);
+                conditionSprite.setScale({scale, scale});
                 target.draw(conditionSprite);
                 iconsRendered += 1;
             }
@@ -270,7 +269,7 @@ std::string Character::characterTypeToString(CHARACTERS c) {
     }
 }
 
-void Character::harm(FPMNum amountHP, sf::Uint32 attackerID) {
+void Character::harm(FPMNum amountHP, std::uint32_t attackerID) {
     if (this->HP <= FPMNum(0))
         return;
     if (hasCondition(CONDITIONS::IMMUNE_TO_DAMAGE))
@@ -344,7 +343,7 @@ bool Character::isPlayerOrAlly() const {
     return false;
 }
 
-void Character::giveCondition(CONDITIONS condition, FPMNum24 lengthMS, sf::Uint32 attackerID, FPMNum data) {
+void Character::giveCondition(CONDITIONS condition, FPMNum24 lengthMS, std::uint32_t attackerID, FPMNum data) {
     auto conditionIdx = static_cast<unsigned int>(condition);
     conditionTimers[conditionIdx] = lengthMS;
     conditionAttackerIDs[conditionIdx] = attackerID;

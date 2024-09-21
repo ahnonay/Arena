@@ -16,7 +16,7 @@
  */
 class Player : public Character {
 public:
-    Player(sf::Uint32 ID, CHARACTERS type, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap>& tilemap, const std::shared_ptr<CharacterContainer> &characterContainer, unsigned int randomSeed, std::string name, std::shared_ptr<sf::Font> font);
+    Player(std::uint32_t ID, CHARACTERS type, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap>& tilemap, const std::shared_ptr<CharacterContainer> &characterContainer, unsigned int randomSeed, std::string name, std::shared_ptr<sf::Font> font);
 
     void simulate() override;
 
@@ -34,13 +34,13 @@ public:
     bool isMoving() const { return !isNull(velocity); }
 
     // This starts the default attack that every player has. For skills, see below.
-    void startAttacking(sf::Uint32 targetID);
+    void startAttacking(std::uint32_t targetID);
 
     // Check if target is within attackRange and (optionally) if player has clear line of sight
     bool canAttack(const FPMVector2& targetPosition, bool lineOfSightCheck = true);
 
     // Check if target is alive, within attackRange and (optionally) if player has clear line of sight
-    bool canAttack(sf::Uint32 targetID, bool lineOfSightCheck = true);
+    bool canAttack(std::uint32_t targetID, bool lineOfSightCheck = true);
 
     // The player's name as input on the main menu
     const std::string &getName() const { return name; }
@@ -82,10 +82,10 @@ public:
     float getSkillCooldownSec(unsigned int skillSlot) const { return static_cast<float>(skillsCooldownMS[skillSlot - 1] / FPMNum24(1000)); }
 
     // When calling, can set dummy values for targetID or targetPosition, depending on whether the used skill actually needs them
-    bool canUseSkill(unsigned int skillSlot, sf::Uint32 targetID, const FPMVector2& targetPosition);
+    bool canUseSkill(unsigned int skillSlot, std::uint32_t targetID, const FPMVector2& targetPosition);
 
     // When calling, can set dummy values for targetID or targetPosition, depending on whether the used skill actually needs them
-    void useSkill(unsigned int skillSlot, sf::Uint32 targetID, const FPMVector2& targetPosition);
+    void useSkill(unsigned int skillSlot, std::uint32_t targetID, const FPMVector2& targetPosition);
 
     bool canUpgradeSkill(unsigned int skillSlot);
 

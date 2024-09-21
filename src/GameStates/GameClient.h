@@ -7,7 +7,7 @@ struct GameClientStartData {
     std::string playerName;
     std::string hostIP;
     std::unique_ptr<sf::TcpSocket> socket;
-    sf::Uint32 randomSeed;
+    std::uint32_t randomSeed;
 };
 
 /***

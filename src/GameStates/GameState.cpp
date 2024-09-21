@@ -12,10 +12,10 @@ void GameState::loadStaticResources() {
     sf::ContextSettings settings;
     settings.depthBits = 24;
     settings.stencilBits = 8;
-    settings.antialiasingLevel = 4;
+    settings.antiAliasingLevel = 4;
     settings.majorVersion = 3;
     settings.minorVersion = 0;
-    window = std::make_shared<sf::RenderWindow>(sf::VideoMode(1600, 900), "Arena", sf::Style::Default, settings);
+    window = std::make_shared<sf::RenderWindow>(sf::VideoMode(sf::Vector2u(1600, 900), 32), "Arena", sf::Style::Default, sf::State::Windowed, settings);
     window->setVerticalSyncEnabled(true);
     window->setView(window->getDefaultView());
 
@@ -27,8 +27,7 @@ void GameState::loadStaticResources() {
     // However, only full transparency or full opaqueness are supported
     glAlphaFunc(GL_GREATER, 0.0f);
 
-    defaultFont = std::make_shared<sf::Font>();
-    defaultFont->loadFromFile("Data/Mesmerize Sc Sb.otf");
+    defaultFont = std::make_shared<sf::Font>("Data/Mesmerize Sc Sb.otf");
 
     imgui = std::make_unique<IMGUI>(window, defaultFont, sf::Vector2f(1600.f, 900.f), 50);
 }

@@ -24,11 +24,11 @@ set(FPM_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/fpm/include)
 
 target_include_directories(Arena ${SFML_INCLUDE_DIR} PRIVATE ${TMXLITE_INCLUDE_DIR} ${FPM_INCLUDE_DIR})
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(Arena sfml-graphics sfml-window sfml-network sfml-system tmxlite -static-libgcc -static-libstdc++)
+    target_link_libraries(Arena SFML::Graphics SFML::Window SFML::Network SFML::System tmxlite -static-libgcc -static-libstdc++)
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # For Windows, add -static to avoid errors with winlibpthread
-    target_link_libraries(Arena sfml-graphics sfml-window sfml-network sfml-system tmxlite -static-libgcc -static-libstdc++ -static)
+    target_link_libraries(Arena SFML::Graphics SFML::Window SFML::Network SFML::System tmxlite -static-libgcc -static-libstdc++ -static)
     add_custom_command(
             TARGET Arena
             COMMENT "Copy OpenAL DLL"

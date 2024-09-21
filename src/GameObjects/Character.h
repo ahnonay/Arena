@@ -12,7 +12,7 @@
 #include "../Util.h"
 #include "../FPMUtil.h"
 
-enum class CHARACTERS : sf::Uint8 {
+enum class CHARACTERS : std::uint8_t {
     ARCHER, BAT, DINO, GHOST, GNOME, KNIGHT, MAGE, MONK, OGRE, ORC, SPIDER, WOLF, ZOMBIE, GREEN_ZOMBIE, PINK_ZOMBIE,
     GREEN_DINO, SHEEP, CROCODILE, BLUE_KNIGHT, RED_KNIGHT, GREEN_KNIGHT, BLACK_KNIGHT, DARK_DWARF, GREEN_DWARF,
     SCARECROW, CHARACTERS_COUNT
@@ -37,7 +37,7 @@ enum class CONDITIONS {
  * */
 class Character {
 public:
-    Character(sf::Uint32 ID, CHARACTERS characterNum, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap>& tilemap, const std::shared_ptr<CharacterContainer>& characterContainer, unsigned int randomSeed);
+    Character(std::uint32_t ID, CHARACTERS characterNum, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap>& tilemap, const std::shared_ptr<CharacterContainer>& characterContainer, unsigned int randomSeed);
 
     virtual ~Character() = default;
 
@@ -71,7 +71,7 @@ public:
     static std::string characterTypeToString(CHARACTERS c);
 
     // Hurt this character. This function is supposed to be called by the attacker.
-    virtual void harm (FPMNum amountHP, sf::Uint32 attackerID);
+    virtual void harm (FPMNum amountHP, std::uint32_t attackerID);
 
     // Heal this character. This function is supposed to be called by the healer.
     void heal (FPMNum amountHP);
@@ -87,7 +87,7 @@ public:
 
     bool isDead() const { return HP<=FPMNum(0); }
 
-    sf::Uint32 getID() const { return ID; }
+    std::uint32_t getID() const { return ID; }
 
     // True if the character has died and the corresponding animation finished. For creeps, we destroy the creep object once the animation has finished.
     bool deathAnimationComplete() const;
@@ -105,7 +105,7 @@ public:
     // Get the cooldown between two attacks by this character, in milliseconds. This can change due to levelups or conditions like ENRAGED.
     FPMNum24 getAttackCooldownMS() const;
 
-    sf::Uint32 getAttackTargetID() const { return attackTargetID; };
+    std::uint32_t getAttackTargetID() const { return attackTargetID; };
 
     CHARACTERS getType() const { return type; }
 
@@ -122,7 +122,7 @@ public:
     bool hasCondition(CONDITIONS condition) const { return conditionTimers[static_cast<unsigned int>(condition)] > FPMNum24(0);}
 
     // Give this character a 'condition' that ends after 'lengthMS'. The character with 'attackerID' was the cause of the condition. 'data' may contain extra information on the condition, e.g., the strength of the poison in the POISONED condition.
-    void giveCondition(CONDITIONS condition, FPMNum24 lengthMS, sf::Uint32 attackerID, FPMNum data = FPMNum(-1));
+    void giveCondition(CONDITIONS condition, FPMNum24 lengthMS, std::uint32_t attackerID, FPMNum data = FPMNum(-1));
 
     static const std::unique_ptr<sf::Texture>& getConditionIcon(CONDITIONS condition) { return conditionIcons[static_cast<unsigned int>(condition)]; }
 protected:
@@ -134,7 +134,7 @@ protected:
     void setOrientationFromVector(const FPMVector2& direction);
 
     std::mt19937 gen;
-    sf::Uint32 ID;
+    std::uint32_t ID;
     CHARACTERS type;
     FPMVector2 mapPosition;
     FPMVector2 velocity;
@@ -152,11 +152,11 @@ protected:
     // attackTimer is set to attackCooldownMS after an attack and needs to go to 0 before the next attack can be made
     FPMNum24 attackTimer;
     // ID of the current target. As a rule, when attackTargetID == ID, there is no current target.
-    sf::Uint32 attackTargetID;
+    std::uint32_t attackTargetID;
 
     // Conditions end after a certain period of time
     std::array<FPMNum24, static_cast<unsigned int>(CONDITIONS::CONDITIONS_COUNT)> conditionTimers;
-    std::array<sf::Uint32, static_cast<unsigned int>(CONDITIONS::CONDITIONS_COUNT)> conditionAttackerIDs;
+    std::array<std::uint32_t, static_cast<unsigned int>(CONDITIONS::CONDITIONS_COUNT)> conditionAttackerIDs;
     FPMNum conditionPoisonDmgPerSec;  // Value only relevant if character is currently POISONED
     static std::array<std::unique_ptr<sf::Texture>, static_cast<unsigned int>(CONDITIONS::CONDITIONS_COUNT)> conditionIcons;
 

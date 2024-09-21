@@ -48,14 +48,14 @@ void GameClient::sendLocalActionsToServer() {
     // the packet has been sent.
     if (isSending) {
         switch (socket->send(sendPacket)) {
-            case sf::Socket::Done:
+            case sf::Socket::Status::Done:
                 isSending = false;
                 break;
-            case sf::Socket::Disconnected:
-            case sf::Socket::Error:
+            case sf::Socket::Status::Disconnected:
+            case sf::Socket::Status::Error:
                 std::cout << "Error on send, attempting to continue..." << std::endl;
                 break;
-            case sf::Socket::Partial:
+            case sf::Socket::Status::Partial:
                 std::cout << "Partial on send" << std::endl;
                 break;
             default:
@@ -70,7 +70,7 @@ void GameClient::receiveEventsFromServer() {
     // latestSimulationStepAvailable so that Game::simulate knows that it can execute the next
     // step in the simulation.
     switch (socket->receive(receivePacket)) {
-        case sf::Socket::Done: {
+        case sf::Socket::Status::Done: {
             auto e = std::make_unique<Event>();
             receivePacket >> *e;
             if (std::holds_alternative<Event::NoMoreEvents>(e->data)) {
@@ -80,12 +80,12 @@ void GameClient::receiveEventsFromServer() {
             eventsToSimulate.emplace_back(std::move(e));
             break;
         }
-        case sf::Socket::Disconnected:
-        case sf::Socket::Error:
+        case sf::Socket::Status::Disconnected:
+        case sf::Socket::Status::Error:
             std::cout << "Error on receive, disconnecting..." << std::endl;
             nextState = GAME_STATES::MainMenu;
             break;
-        case sf::Socket::Partial:
+        case sf::Socket::Status::Partial:
             std::cout << "Partial on receive" << std::endl;
             break;
         default:

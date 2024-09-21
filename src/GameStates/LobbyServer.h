@@ -43,7 +43,7 @@ private:
     std::string playerName;
     CHARACTERS characterType;
 
-    sf::Uint32 randomSeed;
+    std::uint32_t randomSeed;
     GameState::GAME_STATES nextState;
     std::unique_ptr<sf::TcpListener> listener;
     std::list<std::unique_ptr<ClientRepresentation>> clients;

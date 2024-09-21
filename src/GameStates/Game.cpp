@@ -21,8 +21,9 @@ void Game::start(std::shared_ptr<void> data) {
         playerCharacters.emplace_back(std::make_shared<Player>(i, startData->playersList[i].second, tilemap->getPlayerSpawnPositions()[i], tilemap, characterContainer, gen(), startData->playersList[i].first, defaultFont));
 
     auto curWindowSize = window->getSize();
-    viewUI.reset(sf::FloatRect(0, 0, curWindowSize.x, curWindowSize.y));
-    viewWorld.reset(sf::FloatRect(0, 0, curWindowSize.x, curWindowSize.y));
+    viewUI.setSize(sf::Vector2f(curWindowSize));
+    viewWorld.setSize(sf::Vector2f(curWindowSize));
+    viewUI.setCenter(sf::Vector2f(curWindowSize) / 2.f);
     viewWorld.setCenter(tilemap->mapToWorld(playerCharacters[playerIndex]->getMapPosition()));
 
     simulationStep = 0;
@@ -39,7 +40,7 @@ void Game::start(std::shared_ptr<void> data) {
     lives = maxLives;
     outcome = GAME_OUTCOME::STILL_PLAYING;
 
-    characterIDBuffer.create(curWindowSize.x, curWindowSize.y, sf::ContextSettings(24));
+    characterIDBuffer.resize(curWindowSize, {24});
     characterIDBuffer.setView(viewWorld);
     characterIDBufferUpdateTimer = 0;
 
@@ -80,9 +81,9 @@ void Game::start(std::shared_ptr<void> data) {
         auto img = skillButtonTextures[i].copyToImage();
         for (unsigned int x = 0; x < img.getSize().x; x++) {
             for (unsigned int y = 0; y < img.getSize().y; y++) {
-                auto pixel = img.getPixel(x, y);
+                auto pixel = img.getPixel({x, y});
                 auto avg = (static_cast<unsigned int>(pixel.r) + static_cast<unsigned int>(pixel.g) + static_cast<unsigned int>(pixel.b)) / 3;
-                img.setPixel(x, y, sf::Color(avg, avg, avg, pixel.a));
+                img.setPixel({x, y}, sf::Color(avg, avg, avg, pixel.a));
             }
         }
         skillButtonTexturesGray[i].loadFromImage(img);
@@ -117,72 +118,80 @@ GameState::GAME_STATES Game::run() {
     justClickedLeft = false;
     justClickedRight = false;
     justPressedShortcut.fill(false);
-    sf::Event e;
-    while (window->pollEvent(e)) {
-        if (e.type == sf::Event::EventType::Closed)
+
+    while (const std::optional event = window->pollEvent())
+    {
+        if (event->is<sf::Event::Closed>())
             nextState = GAME_STATES::End;
-        else if (e.type == sf::Event::EventType::MouseWheelScrolled &&  // Zoom in and out of world
-                 e.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
-            float zoomFactor = 1.f;
-            if (e.mouseWheelScroll.delta > 0)
-                zoomFactor -= elapsedTime.asSeconds() * 8.f;
-            else if (e.mouseWheelScroll.delta < 0)
-                zoomFactor += elapsedTime.asSeconds() * 8.f;
-            if (viewWorld.getSize().x * zoomFactor >= 200 and viewWorld.getSize().x * zoomFactor <= 4000)
-                viewWorld.zoom(zoomFactor);
-        } else if (e.type == sf::Event::Resized) {  // Adjust views etc. for resized window
+        else if (const auto* eventData = event->getIf<sf::Event::Resized>()) {
+            // Adjust views etc. for resized window
             float curZoomFactor = viewWorld.getSize().x / viewUI.getSize().x;
-            viewUI.reset(sf::FloatRect(0, 0, e.size.width, e.size.height));
-            viewWorld.setSize(e.size.width, e.size.height);
+            auto newSizef = sf::Vector2f(eventData->size);
+            viewUI.setSize(newSizef);
+            viewUI.setCenter(newSizef / 2.f);
+            viewWorld.setSize(newSizef);
             viewWorld.zoom(curZoomFactor);
-            characterIDBuffer.create(e.size.width, e.size.height, sf::ContextSettings(24));
+            characterIDBuffer.resize(eventData->size, {24});
             characterIDBufferUpdateTimer = 0;
-        } else if (e.type == sf::Event::MouseButtonReleased and e.mouseButton.button == sf::Mouse::Button::Left)
-            justClickedLeft = true;
-        else if (e.type == sf::Event::MouseButtonReleased and e.mouseButton.button == sf::Mouse::Button::Right)
-            justClickedRight = true;
-        else if (e.type == sf::Event::KeyPressed) {
-            switch (e.key.code) {
-                case sf::Keyboard::Num0:
-                case sf::Keyboard::Numpad0:
+        }
+        else if (const auto* eventData = event->getIf<sf::Event::MouseWheelScrolled>()) {
+            // Zoom in and out of world
+            if (eventData->wheel == sf::Mouse::Wheel::Vertical) {
+                float zoomFactor = 1.f;
+                if (eventData->delta > 0)
+                    zoomFactor -= elapsedTime.asSeconds() * 8.f;
+                else if (eventData->delta < 0)
+                    zoomFactor += elapsedTime.asSeconds() * 8.f;
+                if (viewWorld.getSize().x * zoomFactor >= 200 and viewWorld.getSize().x * zoomFactor <= 4000)
+                    viewWorld.zoom(zoomFactor);
+            }
+        } else if (const auto* eventData = event->getIf<sf::Event::MouseButtonReleased>()) {
+            if (eventData->button == sf::Mouse::Button::Left)
+                justClickedLeft = true;
+            else if (eventData->button == sf::Mouse::Button::Right)
+                justClickedRight = true;
+        } else if (const auto* eventData = event->getIf<sf::Event::KeyPressed>()) {
+            switch (eventData->code) {
+                case sf::Keyboard::Key::Num0:
+                case sf::Keyboard::Key::Numpad0:
                     justPressedShortcut[0] = true;
-                    break;
-                case sf::Keyboard::Num1:
-                case sf::Keyboard::Numpad1:
+                break;
+                case sf::Keyboard::Key::Num1:
+                case sf::Keyboard::Key::Numpad1:
                     justPressedShortcut[1] = true;
-                    break;
-                case sf::Keyboard::Num2:
-                case sf::Keyboard::Numpad2:
+                break;
+                case sf::Keyboard::Key::Num2:
+                case sf::Keyboard::Key::Numpad2:
                     justPressedShortcut[2] = true;
-                    break;
-                case sf::Keyboard::Num3:
-                case sf::Keyboard::Numpad3:
+                break;
+                case sf::Keyboard::Key::Num3:
+                case sf::Keyboard::Key::Numpad3:
                     justPressedShortcut[3] = true;
-                    break;
-                case sf::Keyboard::Num4:
-                case sf::Keyboard::Numpad4:
+                break;
+                case sf::Keyboard::Key::Num4:
+                case sf::Keyboard::Key::Numpad4:
                     justPressedShortcut[4] = true;
-                    break;
-                case sf::Keyboard::Num5:
-                case sf::Keyboard::Numpad5:
+                break;
+                case sf::Keyboard::Key::Num5:
+                case sf::Keyboard::Key::Numpad5:
                     justPressedShortcut[5] = true;
-                    break;
-                case sf::Keyboard::Num6:
-                case sf::Keyboard::Numpad6:
+                break;
+                case sf::Keyboard::Key::Num6:
+                case sf::Keyboard::Key::Numpad6:
                     justPressedShortcut[6] = true;
-                    break;
-                case sf::Keyboard::Num7:
-                case sf::Keyboard::Numpad7:
+                break;
+                case sf::Keyboard::Key::Num7:
+                case sf::Keyboard::Key::Numpad7:
                     justPressedShortcut[7] = true;
-                    break;
-                case sf::Keyboard::Num8:
-                case sf::Keyboard::Numpad8:
+                break;
+                case sf::Keyboard::Key::Num8:
+                case sf::Keyboard::Key::Numpad8:
                     justPressedShortcut[8] = true;
-                    break;
-                case sf::Keyboard::Num9:
-                case sf::Keyboard::Numpad9:
+                break;
+                case sf::Keyboard::Key::Num9:
+                case sf::Keyboard::Key::Numpad9:
                     justPressedShortcut[9] = true;
-                    break;
+                break;
                 default:
                     break;
             }
@@ -221,15 +230,15 @@ GameState::GAME_STATES Game::run() {
         // May also multiply cameraMoveAmount with * viewWorld.getSize().x / viewUI.getSize().x
         // to get less hectic movement on closer zoom levels.
         float cameraMoveAmount = elapsedTime.asMilliseconds();
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) or (0 <= mousePos.x and mousePos.x < viewUI.getSize().x *  0.01)) {
-            viewWorld.move(-cameraMoveAmount, 0.f);
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) or (mousePos.x <= viewUI.getSize().x and mousePos.x > viewUI.getSize().x *  0.99)) {
-            viewWorld.move(cameraMoveAmount, 0.f);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) or (0 <= mousePos.x and mousePos.x < viewUI.getSize().x *  0.01)) {
+            viewWorld.move({-cameraMoveAmount, 0.f});
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) or (mousePos.x <= viewUI.getSize().x and mousePos.x > viewUI.getSize().x *  0.99)) {
+            viewWorld.move({cameraMoveAmount, 0.f});
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) or (mousePos.y <= viewUI.getSize().y and mousePos.y > viewUI.getSize().y *  0.99)) {
-            viewWorld.move(0.f, cameraMoveAmount);
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) or (0 <= mousePos.y and mousePos.y < viewUI.getSize().y *  0.01)) {
-            viewWorld.move(0.f, -cameraMoveAmount);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) or (mousePos.y <= viewUI.getSize().y and mousePos.y > viewUI.getSize().y *  0.99)) {
+            viewWorld.move({0.f, cameraMoveAmount});
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) or (0 <= mousePos.y and mousePos.y < viewUI.getSize().y *  0.01)) {
+            viewWorld.move({0.f, -cameraMoveAmount});
         }
         auto cameraCenter = viewWorld.getCenter();
         if (cameraCenter.x < viewWorld.getSize().x / 3)
@@ -245,15 +254,15 @@ GameState::GAME_STATES Game::run() {
         viewWorld.setCenter(cameraCenter);
 
         // If currently selecting a skill target and clicking right, stop selection
-        if (justClickedRight or sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+        if (justClickedRight or sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
             targetSelectionSkillNum = 0;
 
         // Send Action if player movement has changed
         auto curKeys = Action::MovementKeysChangedAction();
-        curKeys.keyStates = {sf::Keyboard::isKeyPressed(sf::Keyboard::W),
-                       sf::Keyboard::isKeyPressed(sf::Keyboard::A),
-                       sf::Keyboard::isKeyPressed(sf::Keyboard::S),
-                       sf::Keyboard::isKeyPressed(sf::Keyboard::D)};
+        curKeys.keyStates = {sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W),
+                       sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A),
+                       sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S),
+                       sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)};
         if (movementKeyStates != curKeys.keyStates) {
             localActions.push(std::make_unique<Action>(curKeys));
             movementKeyStates = curKeys.keyStates;
@@ -270,7 +279,7 @@ GameState::GAME_STATES Game::run() {
                 characterIDBufferUpdateTimer = 15;
             } else
                 characterIDBufferUpdateTimer -= 1;
-            auto hoveredPixel = characterIDImage.getPixel(mousePos.x, mousePos.y);
+            auto hoveredPixel = characterIDImage.getPixel(sf::Vector2u(mousePos));
             auto decodedID = (static_cast<unsigned int>(hoveredPixel.r) << 16) + (static_cast<unsigned int>(hoveredPixel.g) << 8) + static_cast<unsigned int>(hoveredPixel.b) - 1;
             if (characterContainer->isAlive(decodedID))
                 hoveredCharacter = characterContainer->getCharacterByID(decodedID);
@@ -374,10 +383,10 @@ void Game::render(const sf::Time& elapsedTime) {
      * faster if we really have a ton of characters on the map
      */
 #define FRUSTUM_TOLERANCE 100.f
-    sf::FloatRect frustum(viewWorld.getCenter().x - viewWorld.getSize().x/2.f - FRUSTUM_TOLERANCE,
-                     viewWorld.getCenter().y - viewWorld.getSize().y/2.f - FRUSTUM_TOLERANCE,
-                     viewWorld.getSize().x + 2.f * FRUSTUM_TOLERANCE,
-                     viewWorld.getSize().y + 2.f * FRUSTUM_TOLERANCE);
+    sf::FloatRect frustum({viewWorld.getCenter().x - viewWorld.getSize().x/2.f - FRUSTUM_TOLERANCE,
+                     viewWorld.getCenter().y - viewWorld.getSize().y/2.f - FRUSTUM_TOLERANCE},
+                     {viewWorld.getSize().x + 2.f * FRUSTUM_TOLERANCE,
+                     viewWorld.getSize().y + 2.f * FRUSTUM_TOLERANCE});
     std::list<std::shared_ptr<Character>> charactersToDraw;
     float elapsedSeconds = elapsedTime.asSeconds();
     for (auto& pc : playerCharacters) {
@@ -492,11 +501,11 @@ void Game::render(const sf::Time& elapsedTime) {
             window->draw(shape);
         }
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::M)) {  // Only for debugging
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::M)) {  // Only for debugging
         for (int x = 0; x < tilemap->getWidth(); x++) {
             for (int y = 0; y < tilemap->getHeight(); y++) {
                 auto tileCenter = FPMVector2(FPMNum(x + 0.5f), FPMNum(y + 0.5f));
-                sf::Text textDraw(std::to_string(characterContainer->getCharactersAt(tileCenter).size()), *defaultFont, 10);
+                sf::Text textDraw(*defaultFont, std::to_string(characterContainer->getCharactersAt(tileCenter).size()), 10);
                 textDraw.setPosition(tilemap->mapToWorld(tileCenter));
                 textDraw.setFillColor(sf::Color::White);
                 window->draw(textDraw);
@@ -521,16 +530,15 @@ void Game::render(const sf::Time& elapsedTime) {
 
     unsigned int conditionIconsRendered = 0;
     float conditionIconSizeX = 35;
-    sf::Sprite conditionSprite;
     for (unsigned int c = 0; c < static_cast<int>(CONDITIONS::CONDITIONS_COUNT); c++) {
         if (playerCharacters[playerIndex]->hasCondition(static_cast<CONDITIONS>(c))) {
-            conditionSprite.setTexture(*playerCharacters[playerIndex]->getConditionIcon(static_cast<CONDITIONS>(c)));
+            sf::Sprite conditionSprite(*playerCharacters[playerIndex]->getConditionIcon(static_cast<CONDITIONS>(c)));
             float iconX = 10 + conditionIconsRendered * (conditionIconSizeX * 5.f / 4.f);
             float iconY = 605.f;
             imgui->transformXY(iconX, iconY);
-            conditionSprite.setPosition(iconX, iconY);
-            float scale = imgui->getScale() * conditionIconSizeX / conditionSprite.getTexture()->getSize().x;
-            conditionSprite.setScale(scale, scale);
+            conditionSprite.setPosition({iconX, iconY});
+            float scale = imgui->getScale() * conditionIconSizeX / conditionSprite.getTexture().getSize().x;
+            conditionSprite.setScale({scale, scale});
             window->draw(conditionSprite);
             conditionIconsRendered += 1;
         }
@@ -563,7 +571,7 @@ void Game::render(const sf::Time& elapsedTime) {
     x = 1540;
     y = 0;
     imgui->transformXY(x, y);
-    backdropSkills.setPosition(x, y);
+    backdropSkills.setPosition({x, y});
     window->draw(backdropSkills);
 
     // Buttons for auto attack/using potions (same for all characters)
@@ -603,7 +611,7 @@ void Game::render(const sf::Time& elapsedTime) {
         x = 180;
         y = 250;
         imgui->transformXY(x, y);
-        backdropShop.setPosition(x, y);
+        backdropShop.setPosition({x, y});
         window->draw(backdropShop);
 
         imgui->text(250, 270, "Shop", 45);
@@ -630,12 +638,11 @@ void Game::render(const sf::Time& elapsedTime) {
         imgui->text(650, 400, "You lose!", 80);
     else if (outcome == GAME_OUTCOME::WON)
         imgui->text(650, 400, "You won!", 80);
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {  // Only for debugging
-        sf::Sprite sprite;
-        sprite.setTexture(characterIDBuffer.getTexture());
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::H)) {  // Only for debugging
+        sf::Sprite sprite(characterIDBuffer.getTexture());
         window->draw(sprite);
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::F))  // Only for debugging
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F))  // Only for debugging
         imgui->text(1400, 10, toStr("Visible characters: ", charactersToDraw.size()), 20);
     imgui->finish();
 

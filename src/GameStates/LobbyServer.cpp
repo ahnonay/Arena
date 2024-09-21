@@ -19,12 +19,12 @@ void LobbyServer::start(std::shared_ptr<void> data) {
 }
 
 GameState::GAME_STATES LobbyServer::run() {
-    sf::Event e;
-    while (window->pollEvent(e)) {
-        if (e.type == sf::Event::EventType::Closed)
+    while (const std::optional event = window->pollEvent())
+    {
+        if (event->is<sf::Event::Closed>())
             nextState = GAME_STATES::End;
-        if (e.type == sf::Event::Resized) {
-            sf::FloatRect visibleArea(0.f, 0.f, e.size.width, e.size.height);
+        else if (const auto* eventData = event->getIf<sf::Event::Resized>()) {
+            sf::FloatRect visibleArea({0.f, 0.f}, {static_cast<float>(eventData->size.x), static_cast<float>(eventData->size.y)});
             window->setView(sf::View(visibleArea));
         }
     }
@@ -39,7 +39,7 @@ GameState::GAME_STATES LobbyServer::run() {
         // Listen to new connections
         auto newSocket = std::make_unique<sf::TcpSocket>();
         switch (listener->accept(*newSocket)) {
-            case sf::Socket::Done: {
+            case sf::Socket::Status::Done: {
                 std::cout << "New client connected" << std::endl;
                 newSocket->setBlocking(false);
                 auto newClientRepresentation = std::make_unique<ClientRepresentation>();
@@ -51,7 +51,7 @@ GameState::GAME_STATES LobbyServer::run() {
                 playersListChanged = true;
                 break;
             }
-            case sf::Socket::NotReady:
+            case sf::Socket::Status::NotReady:
                 break;
             default:
                 std::cout << "Error on listener.accept" << std::endl;
@@ -67,26 +67,26 @@ GameState::GAME_STATES LobbyServer::run() {
     std::list<std::list<std::unique_ptr<ClientRepresentation>>::const_iterator> disconnectedClients;
     for (auto iter = clients.cbegin(); iter != clients.end(); ++iter) {
         switch ((*iter)->socket->receive((*iter)->receivePacket)) {
-            case sf::Socket::Done:
-                sf::Uint8 type;
+            case sf::Socket::Status::Done:
+                std::uint8_t type;
                 (*iter)->receivePacket >> type;
-                assert(type == static_cast<sf::Uint8>(LobbyClientToServerPacketTypes::UpdatePlayerName));
+                assert(type == static_cast<std::uint8_t>(LobbyClientToServerPacketTypes::UpdatePlayerName));
                 (*iter)->receivePacket >> (*iter)->name;
-                sf::Uint8 cType;
+                std::uint8_t cType;
                 (*iter)->receivePacket >> cType;
                 (*iter)->characterType = static_cast<CHARACTERS>(cType);
                 std::cout << "Received packet, got name from " << (*iter)->name << std::endl;
                 playersListChanged = true;
                 break;
-            case sf::Socket::Disconnected:
-            case sf::Socket::Error:
+            case sf::Socket::Status::Disconnected:
+            case sf::Socket::Status::Error:
                 std::cout << "Error on receive, disconnecting player " << (*iter)->name << std::endl;
                 (*iter)->socket->setBlocking(true);
                 (*iter)->socket->disconnect();
                 disconnectedClients.push_back(iter);
                 playersListChanged = true;
                 break;
-            case sf::Socket::Partial:
+            case sf::Socket::Status::Partial:
                 std::cout << "Partial on receive from " << (*iter)->name << std::endl;
                 break;
             default:
@@ -105,10 +105,10 @@ GameState::GAME_STATES LobbyServer::run() {
         updatePlayersList();
         for (auto& c: clients) {
             c->sendPacket = std::make_unique<sf::Packet>();
-            *c->sendPacket << static_cast<sf::Uint8>(LobbyServerToClientPacketTypes::UpdatePlayersList);
-            *c->sendPacket << static_cast<sf::Uint8>(playersList.size());
+            *c->sendPacket << static_cast<std::uint8_t>(LobbyServerToClientPacketTypes::UpdatePlayersList);
+            *c->sendPacket << static_cast<std::uint8_t>(playersList.size());
             for (const auto &s: playersList)
-                *c->sendPacket << s.first << static_cast<sf::Uint8>(s.second);
+                *c->sendPacket << s.first << static_cast<std::uint8_t>(s.second);
         }
     }
 
@@ -120,15 +120,15 @@ GameState::GAME_STATES LobbyServer::run() {
     for (auto& c: clients) {
         if (c->sendPacket) {
             switch (c->socket->send(*c->sendPacket)) {
-                case sf::Socket::Done:
+                case sf::Socket::Status::Done:
                     std::cout << "Sent playersList to " << c->name << std::endl;
                     c->sendPacket = nullptr;
                     break;
-                case sf::Socket::Disconnected:
-                case sf::Socket::Error:
+                case sf::Socket::Status::Disconnected:
+                case sf::Socket::Status::Error:
                     std::cout << "Error on send to " << c->name << " retrying..." << std::endl;
                     break;
-                case sf::Socket::Partial:
+                case sf::Socket::Status::Partial:
                     std::cout << "Partial on send to " << c->name << std::endl;
                     break;
                 default:
@@ -185,7 +185,7 @@ std::shared_ptr<void> LobbyServer::end() {
         for (auto& c: clients) {
             c->socket->setBlocking(true);
             sf::Packet startPacket;
-            startPacket << static_cast<sf::Uint8>(LobbyServerToClientPacketTypes::StartGame);
+            startPacket << static_cast<std::uint8_t>(LobbyServerToClientPacketTypes::StartGame);
             startPacket << randomSeed;
             c->socket->send(startPacket);
             c->socket->setBlocking(false);

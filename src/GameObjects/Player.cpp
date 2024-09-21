@@ -5,10 +5,10 @@
 #include "../Constants.h"
 #include "Skills.h"
 
-Player::Player(sf::Uint32 ID, CHARACTERS type, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap> &tilemap, const std::shared_ptr<CharacterContainer> &characterContainer, unsigned int randomSeed, std::string name, std::shared_ptr<sf::Font> font)
+Player::Player(std::uint32_t ID, CHARACTERS type, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap> &tilemap, const std::shared_ptr<CharacterContainer> &characterContainer, unsigned int randomSeed, std::string name, std::shared_ptr<sf::Font> font)
         : Character(ID, type, spawnPosition, tilemap, characterContainer, randomSeed), name(std::move(name)),
           respawnTimer(0), respawnCooldownMS(PLAYER_RESPAWN_SEC * 1000),
-          gold(0), level(1), XP(0), font(std::move(font)), numHPPotions(0), numMPPotions(0), zoneTimer(0),
+          gold(0), level(1), XP(0), nameForRendering(*font), font(std::move(font)), numHPPotions(0), numMPPotions(0), zoneTimer(0),
           zonePosition(FPMNum(0), FPMNum(0)), maxMP(0), MP(0), skillsCooldownMS(),
           skillsTimer() {
     // Set stats depending on the character type
@@ -56,8 +56,7 @@ Player::Player(sf::Uint32 ID, CHARACTERS type, FPMVector2 spawnPosition, const s
     nameForRendering.setFont(*this->font);
     nameForRendering.setString(sf::String::fromUtf8(this->name.begin(), this->name.end()));
     nameForRendering.setCharacterSize(13);
-    auto nameBounds = nameForRendering.getGlobalBounds();
-    nameForRendering.setOrigin(nameBounds.width / 2.f, nameBounds.height / 2.f);
+    nameForRendering.setOrigin(nameForRendering.getGlobalBounds().size / 2.f);
 
     // Most skills have the default cooldown, some take longer
     skillsTimer.fill(FPMNum24(0));
@@ -102,7 +101,7 @@ void Player::movementKeysChanged(const std::array<bool, 4> &keyStates) {
     this->attackTargetID = ID;
 }
 
-void Player::startAttacking(sf::Uint32 targetID) {
+void Player::startAttacking(std::uint32_t targetID) {
     // Here, we don't need to do plausibility checks (e.g. using canAttack)
     // because this is done in Player::simulate
     this->attackTargetID = targetID;
@@ -248,7 +247,7 @@ void Player::regainMP(FPMNum amount) {
 bool Player::updateDrawables(const sf::FloatRect& frustum, float elapsedSeconds, unsigned int elapsedMSSinceLastSimulationStep) {
     auto visible = Character::updateDrawables(frustum, elapsedSeconds, elapsedMSSinceLastSimulationStep);
     if (visible)
-        nameForRendering.setPosition(sprite.getPosition().x, sprite.getPosition().y + 10.f);
+        nameForRendering.setPosition({sprite.getPosition().x, sprite.getPosition().y + 10.f});
     return visible;
 }
 
@@ -257,7 +256,7 @@ void Player::drawUI(sf::RenderTarget &target) {
     target.draw(nameForRendering);
 }
 
-bool Player::canAttack(sf::Uint32 targetID, bool lineOfSightCheck) {
+bool Player::canAttack(std::uint32_t targetID, bool lineOfSightCheck) {
     return characterContainer->isAlive(targetID) and canAttack(characterContainer->getCharacterByID(targetID)->getMapPosition(), lineOfSightCheck);
 }
 
@@ -351,7 +350,7 @@ void Player::makeAOEAttack(const FPMVector2& where, FPMNum radius, FPMNum damage
     }
 }
 
-bool Player::canUseSkill(unsigned int skillSlot, sf::Uint32 targetID, const FPMVector2& targetPosition) {
+bool Player::canUseSkill(unsigned int skillSlot, std::uint32_t targetID, const FPMVector2& targetPosition) {
     auto skill = skillSlotToSkill(this->type, skillSlot);
     if (this->isDead() or skillsTimer[skillSlot - 1] > FPMNum24(0) or MP < getMPCostOfSkill(skill))
         return false;
@@ -385,7 +384,7 @@ bool Player::canUseSkill(unsigned int skillSlot, sf::Uint32 targetID, const FPMV
     }
 }
 
-void Player::useSkill(unsigned int skillSlot, sf::Uint32 targetID, const FPMVector2& targetPosition) {
+void Player::useSkill(unsigned int skillSlot, std::uint32_t targetID, const FPMVector2& targetPosition) {
     if (!canUseSkill(skillSlot, targetID, targetPosition))
         return;
 

@@ -24,7 +24,7 @@
  *      - If the new aspect ratio is wider, add padding to horizontal positions larger than canvasSize.x / 2
  *      - If the new aspect ratio is narrower, add padding to vertical positions larger than canvasSize.y / 2
  */
-class IMGUI : public sf::NonCopyable {
+class IMGUI {
 public:
     IMGUI(std::shared_ptr<sf::RenderWindow> window, std::shared_ptr<sf::Font> font, sf::Vector2f canvasSize, unsigned int defaultCanvasFontSize);
 
@@ -40,7 +40,7 @@ public:
 
     void toolTip(const std::string &text, unsigned int fontSize = 0);
 
-    void prepare(bool textEntered = false, sf::Uint32 textEnteredUnicode = 0);
+    void prepare(bool textEntered = false, std::uint32_t textEnteredUnicode = 0);
 
     void finish();
 
@@ -60,7 +60,7 @@ private:
     int activatedItem;
     bool mouseDown;
     bool textEntered;
-    sf::Uint32 textEnteredUnicode;
+    std::uint32_t textEnteredUnicode;
     sf::Vector2f curMousePos;
 
     std::shared_ptr<sf::Font> font;

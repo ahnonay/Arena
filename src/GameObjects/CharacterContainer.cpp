@@ -84,7 +84,7 @@ void CharacterContainer::insertOrRemove(Character* c, const FPMVector2 &pos, FPM
     }
 }
 
-bool CharacterContainer::isAlive(sf::Uint32 ID) {
+bool CharacterContainer::isAlive(std::uint32_t ID) {
     return characterIDs.count(ID) > 0 and !characterIDs[ID]->isDead();
 }
 
@@ -93,8 +93,8 @@ FPMVector2 CharacterContainer::findFreeSpawnPosition(const FPMRect &spawnZone, c
     FPMVector2 spawnPosition;
     std::uniform_int_distribution<int> dist(0, 1000);
     for (unsigned int t = 0; t < trials; t++) {
-        spawnPosition.x = spawnZone.left + spawnZone.width * dist(gen) / FPMNum(1000);
-        spawnPosition.y = spawnZone.top + spawnZone.height * dist(gen) / FPMNum(1000);
+        spawnPosition.x = spawnZone.position.x + spawnZone.size.x * dist(gen) / FPMNum(1000);
+        spawnPosition.y = spawnZone.position.y + spawnZone.size.y * dist(gen) / FPMNum(1000);
         bool collision = false;
         auto nearbyCharacters = getCharactersAtWithTolerance(spawnPosition, groundRadius);
         for (const auto& character: *nearbyCharacters) {

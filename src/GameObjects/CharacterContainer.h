@@ -27,10 +27,10 @@ public:
     explicit CharacterContainer(const std::shared_ptr<Tilemap>& tileMap);
 
     // True if character with ID exists AND is alive.
-    bool isAlive(sf::Uint32 ID);
+    bool isAlive(std::uint32_t ID);
 
     // Causes exception if ID does not exist. Use isAlive first.
-    Character* getCharacterByID(sf::Uint32 ID) { return characterIDs[ID]; }
+    Character* getCharacterByID(std::uint32_t ID) { return characterIDs[ID]; }
 
     // Get characters on that map tile. Fast function.
     std::list<Character*>& getCharactersAt(const FPMVector2 &map);
@@ -57,5 +57,5 @@ private:
 
     std::vector<std::list<Character *>> characterMap;
 
-    std::unordered_map<sf::Uint32, Character*> characterIDs;
+    std::unordered_map<std::uint32_t, Character*> characterIDs;
 };

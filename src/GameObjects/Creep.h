@@ -13,7 +13,7 @@
  */
 class Creep : public Character {
 public:
-    Creep(sf::Uint32 ID, unsigned int level, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap>& tilemap, const std::shared_ptr<CharacterContainer> &characterContainer, unsigned int randomSeed);
+    Creep(std::uint32_t ID, unsigned int level, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap>& tilemap, const std::shared_ptr<CharacterContainer> &characterContainer, unsigned int randomSeed);
 
     void simulate() override;
 
@@ -24,13 +24,13 @@ public:
     static CHARACTERS levelToCharacterType(unsigned int creepLevel);
 
     // In addition to losing HP, here we also keep track of which player caused the damage. If the creep dies, we inform all players that damaged it about their contribution so that they can gain XP etc.
-    void harm(FPMNum amountHP, sf::Uint32 attackerID) override;
+    void harm(FPMNum amountHP, std::uint32_t attackerID) override;
 private:
     std::array<FPMNum, MAX_NUM_PLAYERS + 1> damageReceived;
 
     // In addition to an attack target (see Character class), creeps may have a seek target (a player they move towards, which is not yet in attack range)
     FPMNum seekRange;
-    sf::Uint32 seekTargetID;
+    std::uint32_t seekTargetID;
 
     // If a creep gets start, it starts to move in random directions after a while
     FPMNum stuckTimer;

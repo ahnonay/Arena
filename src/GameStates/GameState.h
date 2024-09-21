@@ -4,7 +4,7 @@
 #include "SFML/System.hpp"
 #include "../Render/IMGUI.h"
 
-class GameState : public sf::NonCopyable {
+class GameState {
 public:
     enum GAME_STATES {
         MainMenu, LobbyServer, LobbyClient, GameServer, GameClient, End

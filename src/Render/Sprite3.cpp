@@ -21,7 +21,7 @@ void Sprite3::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Apply the texture
-    sf::Texture::bind(states.texture, sf::Texture::Pixels);
+    sf::Texture::bind(states.texture, sf::CoordinateType::Pixels);
 
     // Apply the shader
     if (states.shader)
@@ -46,7 +46,7 @@ void Sprite3::setTexture(const sf::Texture &texture, bool resetRect) {
     // Recompute the texture area if requested, or if there was no valid texture & rect before
     if (resetRect || (!this->texture && (textureRect == sf::IntRect()))) {
         sf::Vector2i size = sf::Vector2i(texture.getSize());
-        setTextureRect(sf::IntRect(0, 0, size.x, size.y));
+        setTextureRect(sf::IntRect({0, 0}, {size.x, size.y}));
     }
 
     // Assign the new texture
@@ -58,18 +58,18 @@ void Sprite3::setTextureRect(const sf::IntRect &rectangle) {
     if (rectangle != textureRect) {
         textureRect = rectangle;
 
-        float width = static_cast<float>(std::abs(textureRect.width));
-        float height = static_cast<float>(std::abs(textureRect.height));
+        float width = static_cast<float>(std::abs(textureRect.size.x));
+        float height = static_cast<float>(std::abs(textureRect.size.y));
         float depth = getDepth();
         vertices[0].position3D = sf::Vector3f(0, 0, depth);
         vertices[1].position3D = sf::Vector3f(0, height, depth);
         vertices[2].position3D = sf::Vector3f(width, 0, depth);
         vertices[3].position3D = sf::Vector3f(width, height, depth);
 
-        float left = textureRect.left;
-        float right = left + textureRect.width;
-        float top = textureRect.top;
-        float bottom = top + textureRect.height;
+        float left = textureRect.position.x;
+        float right = left + textureRect.size.x;
+        float top = textureRect.position.y;
+        float bottom = top + textureRect.size.y;
         vertices[0].texCoords = sf::Vector2f(left, top);
         vertices[1].texCoords = sf::Vector2f(left, bottom);
         vertices[2].texCoords = sf::Vector2f(right, top);

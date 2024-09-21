@@ -11,7 +11,7 @@
 #include <SFML/Graphics.hpp>
 
 // Compass directions. Used, e.g., for directions into which a character sprite may be facing.
-enum class ORIENTATIONS : sf::Uint8 {
+enum class ORIENTATIONS : std::uint8_t {
     E, N, NE, NW, S, SE, SW, W, NUM_ORIENTATIONS
 };
 
@@ -58,18 +58,19 @@ inline sf::IntRect getViewportAsIntRect(sf::RenderTarget &target, const sf::View
     float height = static_cast<float>(target.getSize().y);
     const sf::FloatRect &viewport = view.getViewport();
 
-    return {static_cast<int>(0.5f + width * viewport.left),
-            static_cast<int>(0.5f + height * viewport.top),
-            static_cast<int>(width * viewport.width),
-            static_cast<int>(height * viewport.height)};
+    return {{
+            static_cast<int>(0.5f + width * viewport.position.x),
+           static_cast<int>(0.5f + height * viewport.position.y)},
+            {static_cast<int>(width * viewport.size.x),
+            static_cast<int>(height * viewport.size.y)}};
 }
 
 // For depth rendering. See https://www.jordansavant.com/book/graphics/sfml/sfml2_depth_buffering.md
 inline void applyCurrentView(sf::RenderTarget &target) {
     // Set the viewport
     sf::IntRect viewport = getViewportAsIntRect(target, target.getView());
-    int top = target.getSize().y - (viewport.top + viewport.height);
-    (glViewport(viewport.left, top, viewport.width, viewport.height));
+    int top = target.getSize().y - (viewport.position.y + viewport.size.y);
+    (glViewport(viewport.position.x, top, viewport.size.x, viewport.size.y));
 
     // Set the projection matrix
     (glMatrixMode(GL_PROJECTION));

@@ -2,7 +2,7 @@
 #include <fpm/ios.hpp>
 #include <algorithm>
 
-Creep::Creep(sf::Uint32 ID, unsigned int level, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap> &tilemap, const std::shared_ptr<CharacterContainer> &characterContainer, unsigned int randomSeed)
+Creep::Creep(std::uint32_t ID, unsigned int level, FPMVector2 spawnPosition, const std::shared_ptr<Tilemap> &tilemap, const std::shared_ptr<CharacterContainer> &characterContainer, unsigned int randomSeed)
         : Character(ID, levelToCharacterType(level), spawnPosition, tilemap, characterContainer, randomSeed), wanderAngle(FPMNum(0)),
           seekTargetID(ID), seekRange(DEFAULT_CREEP_SEEK_RANGE),
           stuckTimer(0), damageReceived() {
@@ -88,7 +88,7 @@ CHARACTERS Creep::levelToCharacterType(unsigned int creepLevel) {
     }
 }
 
-void Creep::harm(FPMNum amountHP, sf::Uint32 attackerID) {
+void Creep::harm(FPMNum amountHP, std::uint32_t attackerID) {
     if (this->HP <= FPMNum(0))
         return;
 
@@ -247,26 +247,26 @@ void Creep::simulate() {
 
 void Creep::drawUI(sf::RenderTarget &target) {
     Character::drawUI(target);
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::V)) { // just for debugging
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::V)) { // just for debugging
         auto worldPosition = tilemap->mapToWorld(mapPosition);
-        sf::Vertex line[] = {sf::Vertex(worldPosition, sf::Color::Red),
-                             sf::Vertex(tilemap->mapToWorld(mapPosition + velocity), sf::Color::Red)};
-        target.draw(line, 2, sf::Lines);
-        sf::Vertex line2[] = {sf::Vertex(worldPosition, sf::Color::Green),
-                              sf::Vertex(tilemap->mapToWorld(mapPosition + seekVelocity), sf::Color::Green)};
-        target.draw(line2, 2, sf::Lines);
-        sf::Vertex line3[] = {sf::Vertex(worldPosition, sf::Color::Blue),
-                              sf::Vertex(tilemap->mapToWorld(mapPosition + wanderVelocity), sf::Color::Blue)};
-        target.draw(line3, 2, sf::Lines);
-        sf::Vertex line4[] = {sf::Vertex(worldPosition, sf::Color::Yellow),
-                              sf::Vertex(tilemap->mapToWorld(mapPosition + flowfieldVelocity), sf::Color::Yellow)};
-        target.draw(line4, 2, sf::Lines);
-        sf::Vertex line5[] = {sf::Vertex(worldPosition, sf::Color::Magenta),
-                              sf::Vertex(tilemap->mapToWorld(mapPosition + separationVelocity), sf::Color::Magenta)};
-        target.draw(line5, 2, sf::Lines);
-        sf::Vertex line6[] = {sf::Vertex(worldPosition, sf::Color::Cyan),
-                              sf::Vertex(tilemap->mapToWorld(mapPosition + obstaclesVelocity), sf::Color::Cyan)};
-        target.draw(line6, 2, sf::Lines);
+        sf::Vertex line[] = {sf::Vertex{worldPosition, sf::Color::Red},
+                             sf::Vertex{tilemap->mapToWorld(mapPosition + velocity), sf::Color::Red}};
+        target.draw(line, 2, sf::PrimitiveType::Lines);
+        sf::Vertex line2[] = {sf::Vertex{worldPosition, sf::Color::Green},
+                              sf::Vertex{tilemap->mapToWorld(mapPosition + seekVelocity), sf::Color::Green}};
+        target.draw(line2, 2, sf::PrimitiveType::Lines);
+        sf::Vertex line3[] = {sf::Vertex{worldPosition, sf::Color::Blue},
+                              sf::Vertex{tilemap->mapToWorld(mapPosition + wanderVelocity), sf::Color::Blue}};
+        target.draw(line3, 2, sf::PrimitiveType::Lines);
+        sf::Vertex line4[] = {sf::Vertex{worldPosition, sf::Color::Yellow},
+                              sf::Vertex{tilemap->mapToWorld(mapPosition + flowfieldVelocity), sf::Color::Yellow}};
+        target.draw(line4, 2, sf::PrimitiveType::Lines);
+        sf::Vertex line5[] = {sf::Vertex{worldPosition, sf::Color::Magenta},
+                              sf::Vertex{tilemap->mapToWorld(mapPosition + separationVelocity), sf::Color::Magenta}};
+        target.draw(line5, 2, sf::PrimitiveType::Lines);
+        sf::Vertex line6[] = {sf::Vertex{worldPosition, sf::Color::Cyan},
+                              sf::Vertex{tilemap->mapToWorld(mapPosition + obstaclesVelocity), sf::Color::Cyan}};
+        target.draw(line6, 2, sf::PrimitiveType::Lines);
     }
 }
 
@@ -347,13 +347,14 @@ FPMVector2 Creep::separation() {
         auto distSq = getLengthSq(toTarget);
         if (distSq < SEPARATION_THRESHOLD_SQ) {
             normalize(toTarget);
-            separation += -toTarget * maxMovementPerSecond * (SEPARATION_THRESHOLD_SQ - distSq) / SEPARATION_THRESHOLD_SQ;
+            separation += -toTarget * (maxMovementPerSecond * (SEPARATION_THRESHOLD_SQ - distSq) / SEPARATION_THRESHOLD_SQ);
             separationCounter++;
         }
     }
 
     if (separationCounter > 0) {
-        separation /= FPMNum(separationCounter);
+        separation.x /= FPMNum(separationCounter);
+        separation.y /= FPMNum(separationCounter);
         clipLength(separation, maxMovementPerSecond);
         return separation;
     } else
@@ -384,7 +385,7 @@ FPMVector2 Creep::flocking() {
         auto distSq = getLengthSq(toTarget);
         if (distSq < SEPARATION_THRESHOLD_SQ) {
             normalize(toTarget);
-            separation += -toTarget * maxMovementPerSecond * (SEPARATION_THRESHOLD_SQ - distSq) / SEPARATION_THRESHOLD_SQ;
+            separation += -toTarget * (maxMovementPerSecond * (SEPARATION_THRESHOLD_SQ - distSq) / SEPARATION_THRESHOLD_SQ);
             separationCounter++;
         }
         averageVelocity += target->getVelocity();
@@ -393,10 +394,14 @@ FPMVector2 Creep::flocking() {
     }
 
     if (counter > 0) {
-        averageVelocity /= FPMNum(counter);
-        averagePosition /= FPMNum(counter);
-        if (separationCounter > 0)
-            separation /= FPMNum(separationCounter);
+        averageVelocity.x /= FPMNum(counter);
+        averageVelocity.y /= FPMNum(counter);
+        averagePosition.x /= FPMNum(counter);
+        averagePosition.y /= FPMNum(counter);
+        if (separationCounter > 0) {
+            separation.x /= FPMNum(separationCounter);
+            separation.y /= FPMNum(separationCounter);
+        }
         FPMVector2 cohesion = seek(averagePosition);
         FPMVector2 alignment = averageVelocity;
         clipLength(separation, maxMovementPerSecond);

@@ -38,6 +38,8 @@ inline FPMVector2 getDirectionVector(ORIENTATIONS orientations) {
     }
 }
 
+// TODO use sf::Vector member functions instead!
+
 inline FPMVector2 fromAngle(FPMNum angleInRadians) { return {fpm::cos(angleInRadians), fpm::sin(angleInRadians)}; }
 
 inline bool isNull(const FPMVector2& a) { return a.x == FPMNum(0) && a.y == FPMNum(0); }
@@ -66,8 +68,10 @@ inline void normalize(FPMVector2& a) {
     auto l = getLength(a);
     if (l == FPMNum(0))
         setNull(a);
-    else
-        a /= l;
+    else {
+        a.x /= l;
+        a.y /= l;
+    }
 }
 
 inline void setLength(FPMVector2& a, FPMNum l) {
@@ -86,7 +90,8 @@ inline void clipLength(FPMVector2& a, FPMNum high, FPMNum low = FPMNum(0)) {
     if (curL < low)
         setNull(a);
     else if (curL > high) {
-        a /= curL;
+        a.x /= curL;
+        a.y /= curL;
         a *= high;
     }
 }

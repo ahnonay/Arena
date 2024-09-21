@@ -22,17 +22,17 @@ void MainMenu::start(std::shared_ptr<void> data) {
 
 GameState::GAME_STATES MainMenu::run() {
     bool textEntered = false;
-    sf::Uint32 textEnteredUnicode = 0;
-    sf::Event e;
-    while (window->pollEvent(e)) {
-        if (e.type == sf::Event::EventType::Closed)
+    std::uint32_t textEnteredUnicode = 0;
+
+    while (const std::optional event = window->pollEvent())
+    {
+        if (event->is<sf::Event::Closed>())
             nextState = GAME_STATES::End;
-        if (e.type == sf::Event::TextEntered) {
+        else if (const auto* eventData = event->getIf<sf::Event::TextEntered>()) {
             textEntered = true;
-            textEnteredUnicode = e.text.unicode;
-        }
-        if (e.type == sf::Event::Resized) {
-            sf::FloatRect visibleArea(0.f, 0.f, e.size.width, e.size.height);
+            textEnteredUnicode = eventData->unicode;
+        } else if (const auto* eventData = event->getIf<sf::Event::Resized>()) {
+            sf::FloatRect visibleArea({0.f, 0.f}, {static_cast<float>(eventData->size.x), static_cast<float>(eventData->size.y)});
             window->setView(sf::View(visibleArea));
         }
     }
@@ -63,7 +63,7 @@ GameState::GAME_STATES MainMenu::run() {
         listener = std::make_unique<sf::TcpListener>();
         listener->setBlocking(true);
         switch (listener->listen(NETWORK_PORT)) {
-            case sf::Socket::Done:
+            case sf::Socket::Status::Done:
                 nextState = GAME_STATES::LobbyServer;
                 std::cout << "Host started listening on port " << NETWORK_PORT << std::endl;
                 break;
@@ -76,18 +76,20 @@ GameState::GAME_STATES MainMenu::run() {
     imgui->text(555, 710, "or");
     imgui->textBox(2, 660, 700, &hostIP, 15);
     if (imgui->button(3, 1140, 700, "Join") and nameOK()) {
-        clientSocket = std::make_unique<sf::TcpSocket>();
-        clientSocket->setBlocking(true);
-        switch (clientSocket->connect(hostIP, NETWORK_PORT)) {
-            case sf::Socket::Done:
-                nextState = GAME_STATES::LobbyClient;
+        if (const auto ipAddr = sf::IpAddress::resolve(hostIP)) {
+            clientSocket = std::make_unique<sf::TcpSocket>();
+            clientSocket->setBlocking(true);
+            switch (clientSocket->connect(*ipAddr, NETWORK_PORT)) {
+                case sf::Socket::Status::Done:
+                    nextState = GAME_STATES::LobbyClient;
                 std::cout << "Client connected to host at " << hostIP << " on port " << NETWORK_PORT
                           << std::endl;
                 break;
-            default:
-                clientSocket = nullptr;
+                default:
+                    clientSocket = nullptr;
                 std::cout << "Error on clientSocket.connect" << std::endl;
                 break;
+            }
         }
     }
     imgui->finish();

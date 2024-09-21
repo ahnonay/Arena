@@ -21,15 +21,15 @@
 class Event {
 public:
     struct Empty { };
-    struct PlayerActionEvent { sf::Uint32 characterID; Action action; };
+    struct PlayerActionEvent { std::uint32_t characterID; Action action; };
     struct NoMoreEvents { };
 
     Event() : data(Empty()), simulationStep(0) { }
 
     // An event is constructed from an object of one of the sub-classes (like PlayerActionEvent) and the event's simulationStep.
-    template <typename T> Event(const T& t, sf::Uint32 simulationStep) : data(t), simulationStep(simulationStep) { }
+    template <typename T> Event(const T& t, std::uint32_t simulationStep) : data(t), simulationStep(simulationStep) { }
 
-    sf::Uint32 simulationStep;
+    std::uint32_t simulationStep;
 
     std::variant<Empty, PlayerActionEvent, NoMoreEvents> data;
 };

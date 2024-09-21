@@ -17,14 +17,14 @@ class Action {
 public:
     struct Empty { };
     struct MovementKeysChangedAction { std::array<bool, 4> keyStates; };
-    struct AttackCharacterAction { sf::Uint32 targetID; };
+    struct AttackCharacterAction { std::uint32_t targetID; };
     struct BuyItemAction { ITEMS item; };
     struct UsePotionAction { POTIONS potion; };
-    struct UseSkillAction { sf::Uint32 skillNum; };
-    struct UseCharacterTargetSkillAction : public UseSkillAction { sf::Uint32 targetID; };
+    struct UseSkillAction { std::uint32_t skillNum; };
+    struct UseCharacterTargetSkillAction : public UseSkillAction { std::uint32_t targetID; };
     struct UsePositionTargetSkillAction : public UseSkillAction { FPMVector2 targetPosition; };
     struct UseSelfSkillAction : public UseSkillAction {};
-    struct UpgradeSkillAction { sf::Uint32 skillNum; };
+    struct UpgradeSkillAction { std::uint32_t skillNum; };
 
     Action() : data(Empty()) { }
 

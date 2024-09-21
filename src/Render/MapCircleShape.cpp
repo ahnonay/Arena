@@ -10,7 +10,7 @@ void MapCircleShape::setRadius(FPMNum r) {
     if (r != radius) {
         this->radius = r;
         update();
-        this->setOrigin(this->getLocalBounds().getPosition() + (this->getLocalBounds().getSize() / 2.f));
+        this->setOrigin(this->getLocalBounds().position + (this->getLocalBounds().size / 2.f));
     }
 }
 

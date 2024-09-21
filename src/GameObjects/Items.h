@@ -7,11 +7,11 @@
 #include "../FPMUtil.h"
 
 
-enum class ITEMS : sf::Uint8 {
+enum class ITEMS : std::uint8_t {
     HP_POTION, MP_POTION, HP_TOME, MP_TOME, XP_TOME, MOVEMENT_TOME, ATTACK_COOLDOWN_TOME, ATTACK_DAMAGE_TOME, SKILL_COOLDOWN_TOME, NUM_ITEMS
 };
 
-enum class POTIONS : sf::Uint8 {
+enum class POTIONS : std::uint8_t {
     HP, MP
 };
 

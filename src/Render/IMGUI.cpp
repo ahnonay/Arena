@@ -24,7 +24,7 @@ IMGUI::IMGUI(std::shared_ptr<sf::RenderWindow> window, std::shared_ptr<sf::Font>
     centerPaddingY = 0.f;
 }
 
-void IMGUI::prepare(bool textEntered, sf::Uint32 textEnteredUnicode) {
+void IMGUI::prepare(bool textEntered, std::uint32_t textEnteredUnicode) {
     // textEntered
     this->textEntered = textEntered;
     this->textEnteredUnicode = textEnteredUnicode;
@@ -33,7 +33,7 @@ void IMGUI::prepare(bool textEntered, sf::Uint32 textEnteredUnicode) {
     auto mousePosi = sf::Mouse::getPosition(*this->window);
     this->curMousePos.x = mousePosi.x;
     this->curMousePos.y = mousePosi.y;
-    mouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+    mouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
     hotItem = 0;
 
     // Canvas and scale
@@ -75,15 +75,15 @@ void IMGUI::finish() {
 bool IMGUI::button(int id, float x, float y, const std::string &text, sf::Texture *img, float w, float h,
                    unsigned int fontSize, bool activated, const std::string &toolTipText, unsigned int toolTipFontSize) {
     unsigned int scaledFontSize = getScaledFontSize(fontSize);
-    sf::Text textDraw(text, *font, scaledFontSize);
+    sf::Text textDraw(*font, text, scaledFontSize);
     sf::FloatRect textBounds = textDraw.getGlobalBounds();
     if (w == -1 || h == -1) {
         if (img != nullptr) {
             h = img->getSize().y * scale;
             w = img->getSize().x * scale;
         } else {
-            h = textBounds.getSize().y + scaledFontSize;
-            w = textBounds.getSize().x + 2 * scaledFontSize;
+            h = textBounds.size.y + scaledFontSize;
+            w = textBounds.size.x + 2 * scaledFontSize;
         }
     } else {
         w *= scale;
@@ -91,7 +91,7 @@ bool IMGUI::button(int id, float x, float y, const std::string &text, sf::Textur
     }
 
     transformXY(x, y);
-    sf::FloatRect buttonRect(x, y, w, h);
+    sf::FloatRect buttonRect({x, y}, {w, h});
 
     if (buttonRect.contains(curMousePos)) {
         hotItem = id;
@@ -100,14 +100,14 @@ bool IMGUI::button(int id, float x, float y, const std::string &text, sf::Textur
     }
 
     // sf::Text behaves weirdly with some inbuilt padding
-    textDraw.setPosition(
-            buttonRect.left + ((buttonRect.width - textBounds.getSize().x) / 2.f) - textBounds.getPosition().x,
-            buttonRect.top + ((buttonRect.height - textBounds.getSize().y) / 2.f) - textBounds.getPosition().y);
+    textDraw.setPosition({
+            buttonRect.position.x + ((buttonRect.size.x - textBounds.size.x) / 2.f) - textBounds.position.x,
+            buttonRect.position.y + ((buttonRect.size.y - textBounds.size.y) / 2.f) - textBounds.position.y});
     textDraw.setFillColor(textColor);
 
     if (img == nullptr) {
-        sf::RectangleShape rectDraw(buttonRect.getSize());
-        rectDraw.setPosition(buttonRect.getPosition());
+        sf::RectangleShape rectDraw(buttonRect.size);
+        rectDraw.setPosition(buttonRect.position);
         if (hotItem == id or activated) {
             if (activatedItem == id or activated)
                 rectDraw.setFillColor(activatedColor);
@@ -118,8 +118,8 @@ bool IMGUI::button(int id, float x, float y, const std::string &text, sf::Textur
         window->draw(rectDraw);
     } else {
         sf::Sprite sprite(*img);
-        sprite.setPosition(buttonRect.getPosition());
-        sprite.setScale(buttonRect.width / img->getSize().x, buttonRect.height / img->getSize().y);
+        sprite.setPosition(buttonRect.position);
+        sprite.setScale({buttonRect.size.x / img->getSize().x, buttonRect.size.y / img->getSize().y});
         if (!activated and activatedItem != id) {
             if (hotItem == id)
                 sprite.setColor(sf::Color(200,200,200));
@@ -147,18 +147,18 @@ bool IMGUI::textBox(int id, float x, float y, std::string *buffer, int maxChars,
                     unsigned int fontSize) {
     unsigned int scaledFontSize = getScaledFontSize(fontSize);
 
-    sf::Text dummyTextDraw("0", *font, scaledFontSize);
+    sf::Text dummyTextDraw(*font, "0", scaledFontSize);
     sf::FloatRect dummyTextBounds = dummyTextDraw.getGlobalBounds();
     if (w == -1 || h == -1) {
-        h = dummyTextBounds.getSize().y + scaledFontSize;
-        w = dummyTextBounds.getSize().x * maxChars + 2 * scaledFontSize;
+        h = dummyTextBounds.size.y + scaledFontSize;
+        w = dummyTextBounds.size.x * maxChars + 2 * scaledFontSize;
     } else {
         w *= scale;
         h *= scale;
     }
 
     transformXY(x, y);
-    sf::FloatRect textBoxRect(x, y, w, h);
+    sf::FloatRect textBoxRect({x, y}, {w, h});
 
     if (textBoxRect.contains(curMousePos)) {
         hotItem = id;
@@ -166,15 +166,15 @@ bool IMGUI::textBox(int id, float x, float y, std::string *buffer, int maxChars,
             activatedItem = id;
     }
 
-    sf::Text textDraw(sf::String::fromUtf8(buffer->begin(), buffer->end()), *font, scaledFontSize);
+    sf::Text textDraw(*font, sf::String::fromUtf8(buffer->begin(), buffer->end()), scaledFontSize);
     sf::FloatRect textBounds = textDraw.getGlobalBounds();
     textDraw.setPosition(
-            textBoxRect.left + ((textBoxRect.width - textBounds.getSize().x) / 2.f) - textBounds.getPosition().x,
-            textBoxRect.top + ((textBoxRect.height - textBounds.getSize().y) / 2.f) - textBounds.getPosition().y);
+            {textBoxRect.position.x + ((textBoxRect.size.x - textBounds.size.x) / 2.f) - textBounds.position.x,
+            textBoxRect.position.y + ((textBoxRect.size.y - textBounds.size.y) / 2.f) - textBounds.position.y});
     textDraw.setFillColor(textColor);
 
-    sf::RectangleShape rectDraw(textBoxRect.getSize());
-    rectDraw.setPosition(textBoxRect.getPosition());
+    sf::RectangleShape rectDraw(textBoxRect.size);
+    rectDraw.setPosition(textBoxRect.position);
     if (hotItem == id || activatedItem == id)
         rectDraw.setFillColor(activatedColor);
     else
@@ -205,9 +205,9 @@ bool IMGUI::textBox(int id, float x, float y, std::string *buffer, int maxChars,
 
 void IMGUI::text(float x, float y, const std::string &text, unsigned int fontSize) {
     unsigned int scaledFontSize = getScaledFontSize(fontSize);
-    sf::Text textDraw(sf::String::fromUtf8(text.begin(), text.end()), *font, scaledFontSize);
+    sf::Text textDraw(*font, sf::String::fromUtf8(text.begin(), text.end()), scaledFontSize);
     transformXY(x, y);
-    textDraw.setPosition(x, y);
+    textDraw.setPosition({x, y});
     textDraw.setFillColor(textColor);
     window->draw(textDraw);
     //if (!toolTipText.empty() and textDraw.getGlobalBounds().contains(curMousePos))
@@ -225,15 +225,15 @@ void IMGUI::transformXY(float &x, float &y) const {
 
 bool IMGUI::checkBox(int id, float x, float y, const std::string &text, bool isTicked, float size, unsigned int fontSize) {
     unsigned int scaledFontSize = getScaledFontSize(fontSize);
-    sf::Text textDraw(text, *font, scaledFontSize);
+    sf::Text textDraw(*font, text, scaledFontSize);
     sf::FloatRect textBounds = textDraw.getGlobalBounds();
     if (size == -1)
-        size = textBounds.getSize().y + scaledFontSize;
+        size = textBounds.size.y + scaledFontSize;
     else
         size *= scale;
 
     transformXY(x, y);
-    sf::FloatRect boxRect(x, y, size, size);
+    sf::FloatRect boxRect({x, y}, {size, size});
 
     if (boxRect.contains(curMousePos)) {
         hotItem = id;
@@ -243,12 +243,12 @@ bool IMGUI::checkBox(int id, float x, float y, const std::string &text, bool isT
 
     // sf::Text behaves weirdly with some inbuilt padding
     textDraw.setPosition(
-            boxRect.left + 1.3f * boxRect.width,
-            boxRect.top + ((boxRect.height - textBounds.getSize().y) / 2.f) - textBounds.getPosition().y);
+            {boxRect.position.x + 1.3f * boxRect.size.x,
+            boxRect.position.y + ((boxRect.size.y - textBounds.size.y) / 2.f) - textBounds.position.y});
     textDraw.setFillColor(textColor);
 
-    sf::RectangleShape rectDraw(boxRect.getSize());
-    rectDraw.setPosition(boxRect.getPosition());
+    sf::RectangleShape rectDraw(boxRect.size);
+    rectDraw.setPosition(boxRect.position);
     sf::Color color = normalColor;
     if (hotItem == id) {
         if (activatedItem == id)
@@ -273,7 +273,7 @@ void IMGUI::fillBar(float x, float y, float cur, float max, float w, float h, co
     sf::RectangleShape fillBar(sf::Vector2f(percentage * w * scale, h * scale));
     fillBar.setFillColor(color);
     transformXY(x, y);
-    fillBar.setPosition(x, y);
+    fillBar.setPosition({x, y});
     window->draw(fillBar);
     if (toolTipFontSize > 0 and fillBar.getGlobalBounds().contains(curMousePos))
         toolTip(toStr(cur, " / ", max), toolTipFontSize);
@@ -288,10 +288,10 @@ void IMGUI::drawToolTip() {
     if (frameToolTipFontSize == 0 or frameToolTipText.empty())
         return;
     unsigned int scaledFontSize = getScaledFontSize(frameToolTipFontSize);
-    sf::Text textDraw(frameToolTipText, *font, scaledFontSize);
+    sf::Text textDraw(*font, frameToolTipText, scaledFontSize);
     sf::FloatRect textBounds = textDraw.getGlobalBounds();
-    float h = textBounds.getSize().y + scaledFontSize;
-    float w = textBounds.getSize().x + 2 * scaledFontSize;
+    float h = textBounds.size.y + scaledFontSize;
+    float w = textBounds.size.x + 2 * scaledFontSize;
     sf::RectangleShape rectDraw(sf::Vector2f(w, h));
 
     // Default positioning of ToolTips is to the upper right of the cursor
@@ -302,13 +302,13 @@ void IMGUI::drawToolTip() {
     float y = this->curMousePos.y - h;
     if (y < 0)
         y += h;
-    rectDraw.setPosition(x, y);
+    rectDraw.setPosition({x, y});
     rectDraw.setFillColor(normalColor);
     window->draw(rectDraw);
 
     textDraw.setPosition(
-            x + ((w - textBounds.getSize().x) / 2.f) - textBounds.getPosition().x,
-            y + ((h - textBounds.getSize().y) / 2.f) - textBounds.getPosition().y);
+            {x + ((w - textBounds.size.x) / 2.f) - textBounds.position.x,
+            y + ((h - textBounds.size.y) / 2.f) - textBounds.position.y});
     textDraw.setFillColor(textColor);
     window->draw(textDraw);
 }

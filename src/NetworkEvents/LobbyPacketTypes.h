@@ -5,11 +5,11 @@
 
 #include <SFML/Network.hpp>
 
-enum class LobbyServerToClientPacketTypes : sf::Uint8 {
+enum class LobbyServerToClientPacketTypes : std::uint8_t {
     StartGame, UpdatePlayersList
 };
 
 
-enum class LobbyClientToServerPacketTypes : sf::Uint8 {
+enum class LobbyClientToServerPacketTypes : std::uint8_t {
     UpdatePlayerName
 };

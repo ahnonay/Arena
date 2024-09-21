@@ -47,54 +47,54 @@ Tilemap::Tilemap(const std::string &filename) {
             for (int index = 0; index < 3; index++) {
                 if (std::stoi(objects[2 - index].getName()) != index + 1)
                     throw std::runtime_error("Creep spawn points must be named 1, 2, ... and ordered top down");
-                creepSpawnZones[index].left = static_cast<FPMNum>(objects[2 - index].getPosition().x / tileHeight);
-                creepSpawnZones[index].top = static_cast<FPMNum>(objects[2 - index].getPosition().y / tileHeight);
-                creepSpawnZones[index].width = static_cast<FPMNum>(objects[2 - index].getAABB().width / tileHeight);
-                creepSpawnZones[index].height = static_cast<FPMNum>(objects[2 - index].getAABB().height / tileHeight);
+                creepSpawnZones[index].position.x = static_cast<FPMNum>(objects[2 - index].getPosition().x / tileHeight);
+                creepSpawnZones[index].position.y = static_cast<FPMNum>(objects[2 - index].getPosition().y / tileHeight);
+                creepSpawnZones[index].size.x = static_cast<FPMNum>(objects[2 - index].getAABB().width / tileHeight);
+                creepSpawnZones[index].size.y = static_cast<FPMNum>(objects[2 - index].getAABB().height / tileHeight);
             }
         } else if (layer->getName() == "playerRespawn") {
             auto objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
             if (objects.size() != 1)
                 throw std::runtime_error("Expected 1 player respawn zone in map");
-            playerRespawnZone.left = static_cast<FPMNum>(objects[0].getPosition().x / tileHeight);
-            playerRespawnZone.top = static_cast<FPMNum>(objects[0].getPosition().y / tileHeight);
-            playerRespawnZone.width = static_cast<FPMNum>(objects[0].getAABB().width / tileHeight);
-            playerRespawnZone.height = static_cast<FPMNum>(objects[0].getAABB().height / tileHeight);
+            playerRespawnZone.position.x = static_cast<FPMNum>(objects[0].getPosition().x / tileHeight);
+            playerRespawnZone.position.y = static_cast<FPMNum>(objects[0].getPosition().y / tileHeight);
+            playerRespawnZone.size.x = static_cast<FPMNum>(objects[0].getAABB().width / tileHeight);
+            playerRespawnZone.size.y = static_cast<FPMNum>(objects[0].getAABB().height / tileHeight);
         } else if (layer->getName() == "healingZone") {
             auto objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
             if (objects.size() != 1)
                 throw std::runtime_error("Expected 1 healing zone in map");
-            healingZone.left = static_cast<FPMNum>(objects[0].getPosition().x / tileHeight);
-            healingZone.top = static_cast<FPMNum>(objects[0].getPosition().y / tileHeight);
-            healingZone.width = static_cast<FPMNum>(objects[0].getAABB().width / tileHeight);
-            healingZone.height = static_cast<FPMNum>(objects[0].getAABB().height / tileHeight);
+            healingZone.position.x = static_cast<FPMNum>(objects[0].getPosition().x / tileHeight);
+            healingZone.position.y = static_cast<FPMNum>(objects[0].getPosition().y / tileHeight);
+            healingZone.size.x = static_cast<FPMNum>(objects[0].getAABB().width / tileHeight);
+            healingZone.size.y = static_cast<FPMNum>(objects[0].getAABB().height / tileHeight);
         } else if (layer->getName() == "creepGoal") {
             auto objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
             if (objects.size() != 1)
                 throw std::runtime_error("Expected 1 creep goal in map");
-            creepGoal.left = static_cast<FPMNum>(objects[0].getPosition().x / tileHeight);
-            creepGoal.top = static_cast<FPMNum>(objects[0].getPosition().y / tileHeight);
-            creepGoal.width = static_cast<FPMNum>(objects[0].getAABB().width / tileHeight);
-            creepGoal.height = static_cast<FPMNum>(objects[0].getAABB().height / tileHeight);
+            creepGoal.position.x = static_cast<FPMNum>(objects[0].getPosition().x / tileHeight);
+            creepGoal.position.y = static_cast<FPMNum>(objects[0].getPosition().y / tileHeight);
+            creepGoal.size.x = static_cast<FPMNum>(objects[0].getAABB().width / tileHeight);
+            creepGoal.size.y = static_cast<FPMNum>(objects[0].getAABB().height / tileHeight);
         } else if (layer->getName() == "shop") {
             auto objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
             if (objects.size() != 1)
                 throw std::runtime_error("Expected 1 shop zone in map");
-            shop.left = static_cast<FPMNum>(objects[0].getPosition().x / tileHeight);
-            shop.top = static_cast<FPMNum>(objects[0].getPosition().y / tileHeight);
-            shop.width = static_cast<FPMNum>(objects[0].getAABB().width / tileHeight);
-            shop.height = static_cast<FPMNum>(objects[0].getAABB().height / tileHeight);
+            shop.position.x = static_cast<FPMNum>(objects[0].getPosition().x / tileHeight);
+            shop.position.y = static_cast<FPMNum>(objects[0].getPosition().y / tileHeight);
+            shop.size.x = static_cast<FPMNum>(objects[0].getAABB().width / tileHeight);
+            shop.size.y = static_cast<FPMNum>(objects[0].getAABB().height / tileHeight);
         } else if (layer->getName() == "obstacles") {
             mapToObstacles.resize((width + 2) * (height + 2) + 1);
             auto objects = layer->getLayerAs<tmx::ObjectGroup>().getObjects();
             obstacles.reserve(objects.size());
             for (const auto& object : objects) {
                 assert(object.getShape() == tmx::Object::Shape::Rectangle);
-                auto newObstacle = std::make_shared<FPMRect>(static_cast<FPMNum>(object.getAABB().left / tileHeight), static_cast<FPMNum>(object.getAABB().top / tileHeight),
-                                                             static_cast<FPMNum>(object.getAABB().width / tileHeight), static_cast<FPMNum>(object.getAABB().height / tileHeight));
+                auto newObstacle = std::make_shared<FPMRect>(FPMVector2(static_cast<FPMNum>(object.getAABB().left / tileHeight), static_cast<FPMNum>(object.getAABB().top / tileHeight)),
+                                                             FPMVector2(static_cast<FPMNum>(object.getAABB().width / tileHeight), static_cast<FPMNum>(object.getAABB().height / tileHeight)));
                 FPMVector2 posInObstacle;
-                for (posInObstacle.x = newObstacle->left; posInObstacle.x < newObstacle->left + newObstacle->width; posInObstacle.x += 1) {
-                    for (posInObstacle.y = newObstacle->top; posInObstacle.y < newObstacle->top + newObstacle->height; posInObstacle.y += 1) {
+                for (posInObstacle.x = newObstacle->position.x; posInObstacle.x < newObstacle->position.x + newObstacle->size.x; posInObstacle.x += 1) {
+                    for (posInObstacle.y = newObstacle->position.y; posInObstacle.y < newObstacle->position.y + newObstacle->size.y; posInObstacle.y += 1) {
                         getObstaclesAt(posInObstacle).push_back(newObstacle);
                     }
                 }
@@ -202,7 +202,7 @@ void Tilemap::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Apply the texture
-    sf::Texture::bind(states.texture, sf::Texture::Pixels);
+    sf::Texture::bind(states.texture, sf::CoordinateType::Pixels);
 
     // Apply the shader
     if (states.shader)
@@ -274,10 +274,10 @@ bool Tilemap::lineOfSightCheck(const FPMVector2 &rayStart, const FPMVector2& ray
     while (!collision) {
         for (const auto& obstacle : getObstaclesAt(curTile)) {
             // Line/AABB collision code: https://tavianator.com/2022/ray_box_boundary.html
-            auto t1 = (obstacle->left - rayStart.x)*invDir.x;
-            auto t2 = (obstacle->left + obstacle->width - rayStart.x)*invDir.x;
-            auto t3 = (obstacle->top - rayStart.y)*invDir.y;
-            auto t4 = (obstacle->top + obstacle->height - rayStart.y)*invDir.y;
+            auto t1 = (obstacle->position.x - rayStart.x)*invDir.x;
+            auto t2 = (obstacle->position.x + obstacle->size.x - rayStart.x)*invDir.x;
+            auto t3 = (obstacle->position.y - rayStart.y)*invDir.y;
+            auto t4 = (obstacle->position.y + obstacle->size.y - rayStart.y)*invDir.y;
 
             auto tmin = std::max(std::min(t1, t2), std::min(t3, t4));
             auto tmax = std::min(std::max(t1, t2), std::max(t3, t4));

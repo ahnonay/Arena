@@ -8,7 +8,7 @@ struct GameServerStartData {
     std::list<std::pair<std::unique_ptr<sf::TcpSocket>, std::pair<std::string, CHARACTERS>>> clients;
     std::string playerName;
     CHARACTERS characterType;
-    sf::Uint32 randomSeed;
+    std::uint32_t randomSeed;
 };
 
 /***

@@ -48,20 +48,20 @@ void GameServer::receiveActionsFromClients() {
         if (!c->isConnected)
             continue;
         switch (c->socket->receive(c->receivePacket)) {
-            case sf::Socket::Done: {
+            case sf::Socket::Status::Done: {
                 auto a = std::make_unique<Action>();
                 c->receivePacket >> *a;
                 c->receivedActions.push(std::move(a));
             } break;
-            case sf::Socket::Disconnected:
-            case sf::Socket::Error:
+            case sf::Socket::Status::Disconnected:
+            case sf::Socket::Status::Error:
                 std::cout << "Error on receive, disconnecting player " << playerCharacters[c->characterIndex]->getName() << std::endl;
                 c->socket->setBlocking(true);
                 c->socket->disconnect();
                 c->socket = nullptr;
                 c->isConnected = false;
                 break;
-            case sf::Socket::Partial:
+            case sf::Socket::Status::Partial:
                 std::cout << "Partial on receive from player " << playerCharacters[c->characterIndex]->getName() << std::endl;
                 break;
             default:
@@ -127,14 +127,14 @@ void GameServer::sendEventsToClients() {
             continue;
         if (!c->sendPacketQueue.empty()) {
             switch (c->socket->send(*c->sendPacketQueue.front())) {
-                case sf::Socket::Done:
+                case sf::Socket::Status::Done:
                     c->sendPacketQueue.pop();
                     break;
-                case sf::Socket::Disconnected:
-                case sf::Socket::Error:
+                case sf::Socket::Status::Disconnected:
+                case sf::Socket::Status::Error:
                     std::cout << "Error on send to " << playerCharacters[c->characterIndex]->getName() << ", attempting to continue..." << std::endl;
                     break;
-                case sf::Socket::Partial:
+                case sf::Socket::Status::Partial:
                     std::cout << "Partial on send to " << playerCharacters[c->characterIndex]->getName() << std::endl;
                     break;
                 default:

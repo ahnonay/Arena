@@ -20,7 +20,7 @@
 #include "../Render/MapCircleShape.h"
 
 struct GameStartData {
-    sf::Uint32 randomSeed;
+    std::uint32_t randomSeed;
     std::vector<std::pair<std::string, CHARACTERS>> playersList;
 };
 
@@ -73,10 +73,10 @@ protected:
     //////////////////////////////////////
     // Some variables related to global game state. Note that more of the game state is encoded in the Player and Creep classes.
     //////////////////////////////////////
-    sf::Int32 maxLives;
-    sf::Int32 lives;
+    std::int32_t maxLives;
+    std::int32_t lives;
     // The first creep gets ID MAX_NUM_PLAYERS (i.e., all players have smaller IDs than creeps). Whenever a new creep is spawned, this counter goes up.
-    sf::Uint32 newCreepIDCounter;
+    std::uint32_t newCreepIDCounter;
     // Once the game has been lost, it can no longer be won and vice versa
     enum class GAME_OUTCOME {STILL_PLAYING, WON, LOST};
     GAME_OUTCOME outcome;

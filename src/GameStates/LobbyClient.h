@@ -35,7 +35,7 @@ private:
 
     GameState::GAME_STATES nextState;
     std::string hostIP;
-    sf::Uint32 randomSeed;
+    std::uint32_t randomSeed;
     std::unique_ptr<sf::TcpSocket> socket;
     sf::Packet packet;
 };

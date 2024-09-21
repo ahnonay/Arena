@@ -15,9 +15,9 @@ void LobbyClient::start(std::shared_ptr<void> data) {
     // Here, for convenience, we use a blocking socket (thus avoiding a repeated sending loop as done in LobbyServer)
     this->socket->setBlocking(true);
     packet.clear();
-    packet << static_cast<sf::Uint8>(LobbyClientToServerPacketTypes::UpdatePlayerName);
+    packet << static_cast<std::uint8_t>(LobbyClientToServerPacketTypes::UpdatePlayerName);
     packet << playerName;
-    packet << static_cast<sf::Uint8>(characterType);
+    packet << static_cast<std::uint8_t>(characterType);
     this->socket->send(packet);
     this->socket->setBlocking(false);
 
@@ -26,12 +26,12 @@ void LobbyClient::start(std::shared_ptr<void> data) {
 }
 
 GameState::GAME_STATES LobbyClient::run() {
-    sf::Event e;
-    while (window->pollEvent(e)) {
-        if (e.type == sf::Event::EventType::Closed)
+    while (const std::optional event = window->pollEvent())
+    {
+        if (event->is<sf::Event::Closed>())
             nextState = GAME_STATES::End;
-        if (e.type == sf::Event::Resized) {
-            sf::FloatRect visibleArea(0.f, 0.f, e.size.width, e.size.height);
+        else if (const auto* eventData = event->getIf<sf::Event::Resized>()) {
+            sf::FloatRect visibleArea({0.f, 0.f}, {static_cast<float>(eventData->size.x), static_cast<float>(eventData->size.y)});
             window->setView(sf::View(visibleArea));
         }
     }
@@ -43,20 +43,20 @@ GameState::GAME_STATES LobbyClient::run() {
      * (which includes the random seed for this round), or the server disconnected (then, return to MainMenu).
      */
     switch (socket->receive(packet)) {
-        case sf::Socket::Done:
+        case sf::Socket::Status::Done:
             std::cout << "Received type packet of type ";
-            sf::Uint8 type;
+            std::uint8_t type;
             packet >> type;
             std::cout << (int) type << std::endl;
-            if (type == static_cast<sf::Uint8>(LobbyServerToClientPacketTypes::StartGame)) {
+            if (type == static_cast<std::uint8_t>(LobbyServerToClientPacketTypes::StartGame)) {
                 packet >> randomSeed;
                 nextState = GAME_STATES::GameClient;
             } else { // LobbyServerToClientPacketTypes::UpdatePlayersList
-                sf::Uint8 numPlayers;
+                std::uint8_t numPlayers;
                 packet >> numPlayers;
                 playersList.clear();
                 std::string s;
-                sf::Uint8 cType;
+                std::uint8_t cType;
                 for (int i = 0; i < numPlayers; i++) {
                     s.clear();
                     packet >> s;
@@ -65,12 +65,12 @@ GameState::GAME_STATES LobbyClient::run() {
                 }
             }
             break;
-        case sf::Socket::Disconnected:
-        case sf::Socket::Error:
+        case sf::Socket::Status::Disconnected:
+        case sf::Socket::Status::Error:
             std::cout << "Error on socket.receive, disconnecting..." << std::endl;
             nextState = GAME_STATES::MainMenu;
             break;
-        case sf::Socket::Partial:
+        case sf::Socket::Status::Partial:
             std::cout << "Partial on socket.receive" << std::endl;
             break;
         default:

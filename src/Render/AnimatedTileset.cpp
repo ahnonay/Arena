@@ -23,7 +23,7 @@ sf::IntRect AnimatedTileset::getTileCoordinates(ORIENTATIONS orientation, unsign
 sf::IntRect AnimatedTileset::getTileCoordinates(unsigned int animationIndex, unsigned int animationStep) const {
     assert(animationStep < numTilesAnimation);
     unsigned int tile = animationStep + numTilesAnimation * animationIndex;
-    return sf::IntRect((tile % tilesetTilesPerColumn) * tilesetTileWidth,
-                       (tile / tilesetTilesPerColumn) * tilesetTileHeight,
-                       tilesetTileWidth, tilesetTileHeight);
+    return {{static_cast<int>(tile % tilesetTilesPerColumn * tilesetTileWidth),
+                       static_cast<int>(tile / tilesetTilesPerColumn * tilesetTileHeight)},
+                       {static_cast<int>(tilesetTileWidth), static_cast<int>(tilesetTileHeight)}};
 }
