@@ -130,7 +130,7 @@ void Creep::simulate() {
         if (!characterContainer->isAlive(attackTargetID) or
             this->hasCondition(CONDITIONS::IMMOBILE) or
             this->hasCondition(CONDITIONS::CONFUSED) or
-            getLengthSq(characterContainer->getCharacterByID(attackTargetID)->getMapPosition() - mapPosition) > attackRange * attackRange)
+            (characterContainer->getCharacterByID(attackTargetID)->getMapPosition() - mapPosition).lengthSquared() > attackRange * attackRange)
             attackTargetID = this->ID;
     }
     if (attackTargetID == this->ID) {
@@ -141,7 +141,7 @@ void Creep::simulate() {
             if (!characterContainer->isAlive(seekTargetID) or
                 this->hasCondition(CONDITIONS::IMMOBILE) or
                 this->hasCondition(CONDITIONS::CONFUSED) or
-                getLengthSq(characterContainer->getCharacterByID(seekTargetID)->getMapPosition() - mapPosition) > seekRange * seekRange)
+                (characterContainer->getCharacterByID(seekTargetID)->getMapPosition() - mapPosition).lengthSquared() > seekRange * seekRange)
                 seekTargetID = this->ID;
         }
         if (!this->hasCondition(CONDITIONS::CONFUSED) and !this->hasCondition(CONDITIONS::IMMOBILE)) {
@@ -150,7 +150,7 @@ void Creep::simulate() {
             for (const auto &c: *nearbyCharacters) {
                 if (!c->isPlayerOrAlly() or c->isDead())
                     continue;
-                FPMNum distSqToPlayer = getLengthSq(c->getMapPosition() - mapPosition);
+                FPMNum distSqToPlayer = (c->getMapPosition() - mapPosition).lengthSquared();
                 if (distSqToPlayer <= attackRange * attackRange)
                     targetsInAttackRange.push_back(c->getID());
                 else if (seekTargetID == this->ID and distSqToPlayer <= seekRange * seekRange)
@@ -341,10 +341,10 @@ FPMVector2 Creep::separation() {
         if (target == this)
             continue;
         auto toTarget= target->getMapPosition() - mapPosition;
-        if (dotProduct(toTarget, curDirection) < FPMNum(0))
+        if (toTarget.dot(curDirection) < FPMNum(0))
             continue;
 
-        auto distSq = getLengthSq(toTarget);
+        auto distSq = toTarget.lengthSquared();
         if (distSq < SEPARATION_THRESHOLD_SQ) {
             normalize(toTarget);
             separation += -toTarget * (maxMovementPerSecond * (SEPARATION_THRESHOLD_SQ - distSq) / SEPARATION_THRESHOLD_SQ);
@@ -379,10 +379,10 @@ FPMVector2 Creep::flocking() {
 //#define FLOCKING_MAX_DISTANCE_SQ FPMNum(9)
 //        if (distSq > FLOCKING_MAX_DISTANCE_SQ)
 //            continue;
-        if (dotProduct(toTarget, curDirection) < FPMNum(0))
+        if (toTarget.dot(curDirection) < FPMNum(0))
             continue;
 
-        auto distSq = getLengthSq(toTarget);
+        auto distSq = toTarget.lengthSquared();
         if (distSq < SEPARATION_THRESHOLD_SQ) {
             normalize(toTarget);
             separation += -toTarget * (maxMovementPerSecond * (SEPARATION_THRESHOLD_SQ - distSq) / SEPARATION_THRESHOLD_SQ);

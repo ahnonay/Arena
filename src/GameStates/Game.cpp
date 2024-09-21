@@ -40,7 +40,8 @@ void Game::start(std::shared_ptr<void> data) {
     lives = maxLives;
     outcome = GAME_OUTCOME::STILL_PLAYING;
 
-    characterIDBuffer.resize(curWindowSize, {24});
+    if (!characterIDBuffer.resize(curWindowSize, {24}))
+        throw std::runtime_error("Game::start: Failed to resize characterIDBuffer");
     characterIDBuffer.setView(viewWorld);
     characterIDBufferUpdateTimer = 0;
 
@@ -50,32 +51,33 @@ void Game::start(std::shared_ptr<void> data) {
     playerAttackRangeShape = std::make_unique<MapCircleShape>(tilemap, FPMNum(0));
     playerAttackRangeShape->setFillColor(sf::Color(150, 150, 150, 50));
 
-    hpPotionTexture.loadFromFile("Data/items/HP_potion.png");
-    hpPotionTexture.generateMipmap();
-    mpPotionTexture.loadFromFile("Data/items/MP_potion.png");
-    mpPotionTexture.generateMipmap();
-    tomeTexture.loadFromFile("Data/items/tome.png");
-    tomeTexture.generateMipmap();
-    autoAttackTexture.loadFromFile("Data/skills/auto_attack.png");
-    autoAttackTexture.generateMipmap();
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::USE_DISTRACTION)].loadFromFile("Data/skills/use_distraction.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::CARNAGE)].loadFromFile("Data/skills/carnage.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::MIGHT)].loadFromFile("Data/skills/might.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::COLD_ARROW)].loadFromFile("Data/skills/cold_arrow.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::DEATHZONE_MAGE)].loadFromFile("Data/skills/death_zone_mage.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::DEATHZONE_MONK)].loadFromFile("Data/skills/death_zone_monk.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::FIREBALL)].loadFromFile("Data/skills/fireball.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::HEAL)].loadFromFile("Data/skills/heal.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::ICE_BOMB)].loadFromFile("Data/skills/ice_bomb.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::MULTI_ARROW)].loadFromFile("Data/skills/multi_arrow.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::TANK)].loadFromFile("Data/skills/tank.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::TELEPORT)].loadFromFile("Data/skills/teleport.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::CONFUSE)].loadFromFile("Data/skills/confuse.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::CREATE_SCARECROW)].loadFromFile("Data/skills/create_scarecrow.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::MASS_HEAL)].loadFromFile("Data/skills/mass_heal.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::POISON_VIAL)].loadFromFile("Data/skills/poison_vial.png");
-    skillButtonTextures[static_cast<unsigned int>(SKILLS::RAGE)].loadFromFile("Data/skills/rage.png");
-    std::for_each(skillButtonTextures.begin(), skillButtonTextures.end(), [](sf::Texture &t) { t.generateMipmap(); });
+    bool success = true;
+    success &= hpPotionTexture.loadFromFile("Data/items/HP_potion.png");
+    success &= hpPotionTexture.generateMipmap();
+    success &= mpPotionTexture.loadFromFile("Data/items/MP_potion.png");
+    success &= mpPotionTexture.generateMipmap();
+    success &= tomeTexture.loadFromFile("Data/items/tome.png");
+    success &= tomeTexture.generateMipmap();
+    success &= autoAttackTexture.loadFromFile("Data/skills/auto_attack.png");
+    success &= autoAttackTexture.generateMipmap();
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::USE_DISTRACTION)].loadFromFile("Data/skills/use_distraction.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::CARNAGE)].loadFromFile("Data/skills/carnage.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::MIGHT)].loadFromFile("Data/skills/might.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::COLD_ARROW)].loadFromFile("Data/skills/cold_arrow.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::DEATHZONE_MAGE)].loadFromFile("Data/skills/death_zone_mage.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::DEATHZONE_MONK)].loadFromFile("Data/skills/death_zone_monk.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::FIREBALL)].loadFromFile("Data/skills/fireball.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::HEAL)].loadFromFile("Data/skills/heal.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::ICE_BOMB)].loadFromFile("Data/skills/ice_bomb.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::MULTI_ARROW)].loadFromFile("Data/skills/multi_arrow.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::TANK)].loadFromFile("Data/skills/tank.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::TELEPORT)].loadFromFile("Data/skills/teleport.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::CONFUSE)].loadFromFile("Data/skills/confuse.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::CREATE_SCARECROW)].loadFromFile("Data/skills/create_scarecrow.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::MASS_HEAL)].loadFromFile("Data/skills/mass_heal.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::POISON_VIAL)].loadFromFile("Data/skills/poison_vial.png");
+    success &= skillButtonTextures[static_cast<unsigned int>(SKILLS::RAGE)].loadFromFile("Data/skills/rage.png");
+    std::for_each(skillButtonTextures.begin(), skillButtonTextures.end(), [&success](sf::Texture &t) { success &= t.generateMipmap(); });
     // Create grayed-out versions of the skill textures for when the skill cannot be cast (e.g. not enough MP)
     for (unsigned int i = 0; i < static_cast<unsigned int>(SKILLS::NUM_SKILLS); i++) {
         auto img = skillButtonTextures[i].copyToImage();
@@ -86,8 +88,10 @@ void Game::start(std::shared_ptr<void> data) {
                 img.setPixel({x, y}, sf::Color(avg, avg, avg, pixel.a));
             }
         }
-        skillButtonTexturesGray[i].loadFromImage(img);
+        success &= skillButtonTexturesGray[i].loadFromImage(img);
     }
+    if (!success)
+        throw std::runtime_error("Game::start: Could not load textures for skill buttons etc.");
 
     deltaClock.restart();
 }
@@ -131,7 +135,8 @@ GameState::GAME_STATES Game::run() {
             viewUI.setCenter(newSizef / 2.f);
             viewWorld.setSize(newSizef);
             viewWorld.zoom(curZoomFactor);
-            characterIDBuffer.resize(eventData->size, {24});
+            if (!characterIDBuffer.resize(eventData->size, {24}))
+                throw std::runtime_error("Game::run: Could not resize characterIDBuffer");
             characterIDBufferUpdateTimer = 0;
         }
         else if (const auto* eventData = event->getIf<sf::Event::MouseWheelScrolled>()) {
@@ -464,14 +469,16 @@ void Game::render(const sf::Time& elapsedTime) {
      * 1b: Draw character IDs to buffer
      */
     if (characterIDBufferUpdateTimer == 0) {
-        characterIDBuffer.setActive(true);
+        bool success = characterIDBuffer.setActive(true);
         characterIDBuffer.setView(viewWorld);
         characterIDBuffer.clear();
         glClear(GL_DEPTH_BUFFER_BIT);
         for (auto const& c : charactersToDraw)
             c->drawCharacterID(characterIDBuffer);
-        characterIDBuffer.setActive(false);
+        success &= characterIDBuffer.setActive(false);
         characterIDBuffer.display();
+        if (!success)
+            std::cout << "Game::render: WARNING: could not set characterIDBuffer (in)active! There will be problems with character selection." << std::endl;
     }
 
     /***

@@ -17,7 +17,8 @@ Tilemap::Tilemap(const std::string &filename) {
     if(!(map.getTilesets().size() == 2 && map.getTilesets()[0].getName() == "Cave" && map.getTilesets()[1].getName() == "flowfield"))
         throw std::runtime_error("Unknown or missing tilesets in map file " + filename);
     auto tileset = map.getTilesets()[0];
-    tilesetTexture.loadFromFile(tileset.getImagePath());
+    if (!tilesetTexture.loadFromFile(tileset.getImagePath()))
+        throw std::runtime_error("Could not load tileset " + tileset.getImagePath());
     tilesetTileWidth = tileset.getTileSize().x;
     tilesetTileHeight = tileset.getTileSize().y;
     tilesetTilesPerColumn = tileset.getColumnCount();

@@ -38,7 +38,7 @@ inline FPMVector2 getDirectionVector(ORIENTATIONS orientations) {
     }
 }
 
-// TODO use sf::Vector member functions instead!
+// TODO Extend sf::Vector and override its member functions instead?
 
 inline FPMVector2 fromAngle(FPMNum angleInRadians) { return {fpm::cos(angleInRadians), fpm::sin(angleInRadians)}; }
 
@@ -46,10 +46,8 @@ inline bool isNull(const FPMVector2& a) { return a.x == FPMNum(0) && a.y == FPMN
 
 inline void setNull(FPMVector2& a) { a.x = FPMNum(0); a.y = FPMNum(0); }
 
-inline FPMNum getLengthSq(const FPMVector2& a) { return a.x * a.x + a.y * a.y; }
-
 inline FPMNum getLength(const FPMVector2& a) {
-    auto lSq = getLengthSq(a);
+    auto lSq = a.lengthSquared();
     if (lSq == FPMNum(0))
         return FPMNum(0);
     else
@@ -57,12 +55,6 @@ inline FPMNum getLength(const FPMVector2& a) {
 }
 
 inline FPMNum getAngle(const FPMVector2& a) { return fpm::atan2(a.y, a.x); }
-
-inline FPMVector2 perpendicular(const FPMVector2& a) { return {-a.y, a.x}; }
-
-inline FPMNum dotProduct(const FPMVector2& a, const FPMVector2& b) { return (a.x * b.x) + (a.y * b.y); }
-
-inline FPMNum crossProduct(const FPMVector2& a, const FPMVector2& b) { return (a.x * b.y) - (a.y * b.x); }
 
 inline void normalize(FPMVector2& a) {
     auto l = getLength(a);

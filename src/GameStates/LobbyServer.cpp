@@ -187,7 +187,8 @@ std::shared_ptr<void> LobbyServer::end() {
             sf::Packet startPacket;
             startPacket << static_cast<std::uint8_t>(LobbyServerToClientPacketTypes::StartGame);
             startPacket << randomSeed;
-            c->socket->send(startPacket);
+            if (c->socket->send(startPacket) != sf::Socket::Status::Done)
+                throw std::runtime_error("LobbyServer::end: Could not send start package to client");
             c->socket->setBlocking(false);
             returnData->clients.emplace_back(std::move(c->socket), std::pair<std::string, CHARACTERS>(c->name, c->characterType));
         }

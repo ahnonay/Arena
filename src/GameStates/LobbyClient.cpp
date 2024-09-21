@@ -18,7 +18,8 @@ void LobbyClient::start(std::shared_ptr<void> data) {
     packet << static_cast<std::uint8_t>(LobbyClientToServerPacketTypes::UpdatePlayerName);
     packet << playerName;
     packet << static_cast<std::uint8_t>(characterType);
-    this->socket->send(packet);
+    if (this->socket->send(packet) != sf::Socket::Status::Done)
+        throw std::runtime_error("LobbyClient::start: Failed to send UpdatePlayerName");
     this->socket->setBlocking(false);
 
     playersList.clear();

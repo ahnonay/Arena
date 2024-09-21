@@ -45,12 +45,15 @@ void Character::loadStaticResources() {
     file.close();
 
     std::generate(conditionIcons.begin(), conditionIcons.end(), std::make_unique<sf::Texture>);
-    conditionIcons[static_cast<unsigned int>(CONDITIONS::IMMOBILE)]->loadFromFile("Data/conditions/immobile.png");
-    conditionIcons[static_cast<unsigned int>(CONDITIONS::IMMUNE_TO_DAMAGE)]->loadFromFile("Data/conditions/immune.png");
-    conditionIcons[static_cast<unsigned int>(CONDITIONS::CONFUSED)]->loadFromFile("Data/conditions/confused.png");
-    conditionIcons[static_cast<unsigned int>(CONDITIONS::ENRAGED)]->loadFromFile("Data/conditions/enraged.png");
-    conditionIcons[static_cast<unsigned int>(CONDITIONS::POISONED)]->loadFromFile("Data/conditions/poisoned.png");
-    std::for_each(conditionIcons.begin(), conditionIcons.end(),[](auto& t) {t->generateMipmap();});
+    bool success = true;
+    success &= conditionIcons[static_cast<unsigned int>(CONDITIONS::IMMOBILE)]->loadFromFile("Data/conditions/immobile.png");
+    success &= conditionIcons[static_cast<unsigned int>(CONDITIONS::IMMUNE_TO_DAMAGE)]->loadFromFile("Data/conditions/immune.png");
+    success &= conditionIcons[static_cast<unsigned int>(CONDITIONS::CONFUSED)]->loadFromFile("Data/conditions/confused.png");
+    success &= conditionIcons[static_cast<unsigned int>(CONDITIONS::ENRAGED)]->loadFromFile("Data/conditions/enraged.png");
+    success &= conditionIcons[static_cast<unsigned int>(CONDITIONS::POISONED)]->loadFromFile("Data/conditions/poisoned.png");
+    std::for_each(conditionIcons.begin(), conditionIcons.end(),[&success](auto& t) {success &= t->generateMipmap();});
+    if (!success)
+        throw std::runtime_error("Could not load condition icons in Character::loadStaticResources");
 }
 
 void Character::unloadStaticResources() {
@@ -64,13 +67,15 @@ Character::Character(std::uint32_t ID, CHARACTERS characterNum, FPMVector2 spawn
         groundRadius(DEFAULT_CHARACTER_RADIUS), maxHP(30), HP(30), attackRange(DEFAULT_CHARACTER_ATTACK_RANGE),
         characterContainer(characterContainer), gen(randomSeed),
         attackDamageHP(0), attackCooldownMS(1000), attackTimer(0), hoverColor(sf::Color::White),
-        attackTargetID(ID), animationStepsPerSecondFactor(1.f), conditionPoisonDmgPerSec(0) {
+        attackTargetID(ID), animationStepsPerSecondFactor(1.f), conditionPoisonDmgPerSec(0), conditionAttackerIDs(), conditionTimers() {
     characterContainer->insert(this, mapPosition, groundRadius);
     healthRect.setFillColor(sf::Color(255, 0, 0));
-    characterIDShader.loadFromFile("Data/character_id_shader.glsl", sf::Shader::Type::Fragment); 
+    if (!characterIDShader.loadFromFile("Data/character_id_shader.glsl", sf::Shader::Type::Fragment))
+        throw std::runtime_error("Could not load character_id_shader in Character::Character");
     characterIDShader.setUniform("texture", sf::Shader::CurrentTexture);
     characterIDShader.setUniform("characterID", sf::Glsl::Vec3((((ID + 1) >> 16) & 0xFF) / 255.f, (((ID + 1) >> 8) & 0xFF) / 255.f, ((ID + 1) & 0xFF) / 255.f));
     conditionTimers.fill(FPMNum24(0));
+    conditionAttackerIDs.fill(ID);
 }
 
 bool Character::updateDrawables(const sf::FloatRect& frustum, float elapsedSeconds, unsigned int elapsedMSSinceLastSimulationStep) {
